@@ -1,8 +1,26 @@
+@import url("https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Raleway:ital,wght@0,100..900;1,100..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Raleway:ital,wght@0,100..900;1,100..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Raleway:ital,wght@0,100..900;1,100..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f3f3f3;
+  --foreground: #131313;
+
+  --color-night: #131313;
+  --color-onyx: #3c3c3c;
+  --color-dim-gray: #646464;
+  --color-silver: #b5b5b5;
+  --color-whitesmoke: #f3f3f3;
+
+  --font-raleway: "Raleway", sans-serif;
+  --font-montserrat: "Montserrat", sans-serif;
+  --font-playfair: "Playfair Display", serif;
+  --font-lora: "Lora", serif;
+  --font-rubik: "Rubik", sans-serif;
+
+  --font-global: var(--font-montserrat);
 }
 
 @theme inline {
@@ -10,17 +28,24 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --color-night: var(--color-night);
+  --color-onyx: var(--color-onyx);
+  --color-dim-gray: var(--color-dim-gray);
+  --color-silver: var(--color-silver);
+  --color-whitesmoke: var(--color-whitesmoke);
+
+  --font-raleway: var(--font-raleway);
+  --font-montserrat: var(--font-montserrat);
+  --font-playfair: var(--font-playfair);
+  --font-lora: var(--font-lora);
+  --font-rubik: var(--font-rubik);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-global);
 }
