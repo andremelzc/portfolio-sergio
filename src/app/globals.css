@@ -2,6 +2,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Raleway:ital,wght@0,100..900;1,100..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Raleway:ital,wght@0,100..900;1,100..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Raleway:ital,wght@0,100..900;1,100..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 @import "tailwindcss";
 
 :root {
@@ -19,8 +20,9 @@
   --font-playfair: "Playfair Display", serif;
   --font-lora: "Lora", serif;
   --font-rubik: "Rubik", sans-serif;
+  --font-roboto: "Roboto", sans-serif;
 
-  --font-global: var(--font-montserrat);
+  --font-global: var(--font-roboto);
 }
 
 @theme inline {
@@ -40,9 +42,8 @@
   --font-playfair: var(--font-playfair);
   --font-lora: var(--font-lora);
   --font-rubik: var(--font-rubik);
+  --font-roboto: var(--font-roboto);
 }
-
-
 
 body {
   background: var(--background);
