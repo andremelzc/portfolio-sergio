@@ -1,30 +1,26 @@
-// utils/galleryData.ts
-
 export interface GalleryItem {
   id: number;
   type: "image" | "special";
   src: string;
-  specialType?: string;
+  // Añadimos 'project' como tipo válido
+  specialType?: "about" | "contact" | "info" | "project";
   title?: string;
   description?: string;
 }
 
 export const generateGalleryItems = (): GalleryItem[] => {
   const items: GalleryItem[] = [];
-  // Aumentamos a 50 para llenar los huecos en la pantalla
   const totalItems = 50;
 
-  // --- CARDS ESPECIALES (About, Contact, Info) ---
-  // Las definimos manualmente para que tengan sus títulos
+  // --- NIVEL 1: SYSTEM CARDS (Fijas) ---
   items.push({
-    id: 100, // ID alto para diferenciar
+    id: 100,
     type: "special",
     specialType: "about",
-    src: "/gallery/about.jpg", // Asegúrate de tener esta imagen o cambiarla
+    src: "/gallery/about.jpg",
     title: "About",
     description: "Who I am",
   });
-
   items.push({
     id: 101,
     type: "special",
@@ -34,29 +30,44 @@ export const generateGalleryItems = (): GalleryItem[] => {
     description: "Get in touch",
   });
 
+  // --- NIVEL 2: PROYECTOS (Simulados - El fotógrafo añadiría estos) ---
   items.push({
-    id: 102,
+    id: 200,
     type: "special",
-    specialType: "info",
-    src: "/gallery/info.jpg",
-    title: "Info",
-    description: "Details",
+    specialType: "project",
+    src: "/gallery/1.jpg",
+    title: "Neon Nights",
+    description: "Tokyo 2024",
+  });
+  items.push({
+    id: 201,
+    type: "special",
+    specialType: "project",
+    src: "/gallery/2.jpg",
+    title: "Desert Dust",
+    description: "Editorial",
+  });
+  items.push({
+    id: 202,
+    type: "special",
+    specialType: "project",
+    src: "/gallery/3.jpg",
+    title: "Studio 54",
+    description: "Portrait",
   });
 
-  // --- IMÁGENES DE RELLENO (FOTOS) ---
-  // Rellenamos el resto con fotos normales
-  // NOTA: Asumo que tienes imágenes tipo "1.jpg", "2.jpg" en public/gallery/
-  // Si no las tienes, repetirán la misma para probar.
-  const specialCount = 3;
-  for (let i = 1; i <= totalItems - specialCount; i++) {
+  // --- NIVEL 3: RELLENO (Fotos decorativas) ---
+  // Restamos los 5 items especiales que ya creamos
+  for (let i = 1; i <= totalItems - 5; i++) {
     items.push({
       id: i,
       type: "image",
-      // Truco: Usamos (i % 5) + 1 para rotar entre 5 imágenes de ejemplo si no tienes 50
-      // Si tienes 50 fotos reales, usa: `/gallery/${i}.jpg`
       src: `/gallery/${(i % 5) + 1}.jpg`,
     });
   }
 
-  return items.sort((a, b) => a.id - b.id);
+  // Mezclamos un poco, pero mantenemos cierto orden para que las System no queden enterradas
+  return items
+    .sort((a, b) => (a.type === "special" ? -1 : 1))
+    .sort(() => Math.random() - 0.5);
 };

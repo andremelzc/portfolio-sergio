@@ -6,74 +6,87 @@ export interface Position {
   rotation: number;
 }
 
+// Ahora recibimos el item completo, no solo el índice
 interface ItemWithPriority {
   index: number;
-  isSpecial: boolean;
+  isSystem: boolean; // About, Contact
+  isProject: boolean; // Proyectos nuevos
+  isSpecial: boolean; // Cualquiera de los dos anteriores
 }
 
 export const generateLayout = (
   itemCount: number,
-  specialIndices: number[],
+  // CAMBIO: Recibimos el array completo de items para ver sus tipos
+  items: any[],
 ): (Position | null)[] => {
   const positions: Position[] = [];
 
-  // CONFIGURACIÓN DE TAMAÑOS
-  const minSize = 120;
-  const maxSize = 220;
-  const specialSize = 320; // Son grandes
+  // --- NUEVAS MEDIDAS (ESCALA REDUCIDA) ---
+  const systemSize = 240; // Antes 320 (About/Contact)
+  const projectSize = 180; // Nuevo nivel intermedio (Proyectos)
 
-  const padding = 15;
+  const minFiller = 80; // Antes 120 (Fotos pequeñas)
+  const maxFiller = 140; // Antes 220 (Fotos medianas)
 
-  // Fallback seguro para dimensiones
+  const padding = 12;
   const viewportWidth =
     typeof window !== "undefined" ? window.innerWidth : 1400;
   const viewportHeight =
     typeof window !== "undefined" ? window.innerHeight : 900;
 
-  const itemsWithPriority: ItemWithPriority[] = [];
-  for (let i = 0; i < itemCount; i++) {
-    itemsWithPriority.push({
-      index: i,
-      isSpecial: specialIndices.includes(i),
-    });
-  }
+  // Clasificamos cada item por su importancia
+  const itemsWithPriority: ItemWithPriority[] = items.map((item, index) => ({
+    index,
+    isSystem:
+      item.specialType === "about" ||
+      item.specialType === "contact" ||
+      item.specialType === "info",
+    isProject: item.specialType === "project",
+    isSpecial: item.type === "special",
+  }));
 
-  // Ordenar: especiales primero
+  // ORDEN DE COLOCACIÓN: Primero lo importante, luego el relleno
   itemsWithPriority.sort((a, b) => {
-    if (a.isSpecial && !b.isSpecial) return -1;
-    if (!a.isSpecial && b.isSpecial) return 1;
+    if (a.isSystem && !b.isSystem) return -1;
+    if (!a.isSystem && b.isSystem) return 1;
+    if (a.isProject && !b.isProject) return -1;
+    if (!a.isProject && b.isProject) return 1;
     return 0;
   });
 
-  // Inicializamos el array con huecos vacíos
   const placedPositions: (Position | null)[] = new Array(itemCount).fill(null);
 
   for (const item of itemsWithPriority) {
     let attempts = 0;
-    const maxAttempts = item.isSpecial ? 500 : 2000;
+    // Damos más intentos a los importantes
+    const maxAttempts = item.isSpecial ? 800 : 1500;
     let newPos: Position | null = null;
     let overlapping = true;
 
-    // --- INTENTO DE COLOCACIÓN LIMPIA ---
     while (overlapping && attempts < maxAttempts) {
       let width, height;
 
-      if (item.isSpecial) {
-        width = specialSize;
-        height = specialSize;
+      if (item.isSystem) {
+        // TAMAÑO GRANDE (Pero reducido a 240px)
+        width = systemSize;
+        height = systemSize;
+      } else if (item.isProject) {
+        // TAMAÑO MEDIANO (Cuadrado para destacar)
+        width = projectSize;
+        height = projectSize;
       } else {
-        width = Math.random() * (maxSize - minSize) + minSize;
-        const aspectRatio = 0.7 + Math.random() * 0.6;
-        height = width * aspectRatio;
+        // TAMAÑO PEQUEÑO (Relleno)
+        width = Math.random() * (maxFiller - minFiller) + minFiller;
+        // Aspect Ratio variado (Vertical/Horizontal)
+        height = width * (0.6 + Math.random() * 0.8);
       }
 
       const x = Math.random() * (viewportWidth - width - padding);
       const y = Math.random() * (viewportHeight - height - padding);
-      const rotation = (Math.random() - 0.5) * 6;
+      const rotation = (Math.random() - 0.5) * 8; // Rotación sutil
 
       newPos = { x, y, width, height, rotation };
 
-      // Comprobar colisión
       overlapping = positions.some((pos) => {
         return !(
           newPos!.x + newPos!.width + padding < pos.x ||
@@ -86,33 +99,25 @@ export const generateLayout = (
       attempts++;
     }
 
-    // --- DECISIÓN FINAL ---
     if (!overlapping && newPos) {
-      // ÉXITO: Encontramos un hueco libre
       positions.push(newPos);
       placedPositions[item.index] = newPos;
-    } else if (item.isSpecial) {
-      // FALLO PERO ES ESPECIAL: FORZAR COLOCACIÓN
-      // Si no hay hueco, la ponemos en el centro o en una posición aleatoria segura
-      // ignorando si choca con otras (el z-index la salvará visualmente)
-      console.warn(`Forzando posición para item especial ${item.index}`);
+    } else if (item.isSystem || item.isProject) {
+      // FUERZA BRUTA: Si es System o Project, se pone SÍ O SÍ.
+      const size = item.isSystem ? systemSize : projectSize;
 
-      const forcedPos: Position = {
-        x: Math.random() * (viewportWidth - specialSize - padding),
-        y: Math.random() * (viewportHeight - specialSize - padding),
-        width: specialSize,
-        height: specialSize,
+      const forcedPos = {
+        x: Math.random() * (viewportWidth - size - padding),
+        y: Math.random() * (viewportHeight - size - padding),
+        width: size,
+        height: size,
         rotation: 0,
       };
-
       positions.push(forcedPos);
       placedPositions[item.index] = forcedPos;
-    } else {
-      // FALLO Y ES NORMAL: Se queda fuera (para evitar saturación fea)
-      // console.log(`Item ${item.index} omitido por falta de espacio`);
+      console.warn(`Forzando posición para especial: ${item.index}`);
     }
   }
 
-  // Filtramos los nulos (las fotos que no cupieron)
   return placedPositions;
 };

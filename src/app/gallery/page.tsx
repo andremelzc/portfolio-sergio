@@ -7,22 +7,28 @@ import { useEffect, useState } from "react";
 
 export default function GalleryPage() {
   const [positions, setPositions] = useState<(Position | null)[]>([]);
-  const galleryItems = generateGalleryItems();
+
+  // OPTIMIZACIÓN: Generamos los items UNA sola vez al cargar la página.
+  // Esto evita que se "re-barajen" las fotos si el componente se renderiza de nuevo.
+  const [galleryItems] = useState(() => generateGalleryItems());
 
   useEffect(() => {
-    // Identificar índices de items especiales
-    const specialIndices = galleryItems
-      .map((item, index) => (item.type === "special" ? index : -1))
-      .filter((index) => index !== -1);
+    // CAMBIO CLAVE AQUÍ:
+    // Ya no calculamos 'specialIndices'.
+    // Pasamos el array completo 'galleryItems' para que el generador sepa
+    // qué es un Proyecto, qué es About y qué es Relleno.
+    const layout = generateLayout(galleryItems.length, galleryItems);
 
-    const layout = generateLayout(galleryItems.length, specialIndices);
     setPositions(layout);
-  }, [galleryItems.length]);
+  }, [galleryItems]);
 
+  // Si no hay posiciones calculadas todavía, mostramos Loading
   if (positions.length === 0) {
     return (
-      <div className="h-screen bg-whitesmoke flex items-center justify-center">
-        <div className="text-sm text-dim-gray tracking-wider">Loading...</div>
+      <div className="h-screen w-screen bg-night flex items-center justify-center">
+        <div className="text-sm text-dim-gray tracking-wider animate-pulse">
+          Loading gallery...
+        </div>
       </div>
     );
   }
@@ -33,11 +39,16 @@ export default function GalleryPage() {
         {galleryItems.map((item, index) => {
           const pos = positions[index];
 
-          // Validación extra: las especiales SIEMPRE deben tener posición
+          // Si la posición es null (significa que no cupo en la pantalla), no renderizamos nada
           if (!pos) {
-            if (item.type === "special") {
+            // Solo lanzamos error si es una carta DE SISTEMA (About/Contact),
+            // ya que esas son obligatorias. Los proyectos o relleno pueden faltar sin problema.
+            if (
+              item.specialType === "about" ||
+              item.specialType === "contact"
+            ) {
               console.error(
-                `CRÍTICO: Card especial ${item.title} no tiene posición!`,
+                `CRÍTICO: System Card ${item.title} no tiene posición!`,
               );
             }
             return null;
@@ -52,6 +63,8 @@ export default function GalleryPage() {
                 top: `${pos.y}px`,
                 width: `${pos.width}px`,
                 height: `${pos.height}px`,
+                // Añadimos una transición suave por si redimensionas la ventana
+                transition: "top 0.5s ease, left 0.5s ease",
               }}
             >
               <GalleryCard item={item} index={index} />
