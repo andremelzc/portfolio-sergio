@@ -3,31 +3,46 @@
 import GalleryCard from "@/components/GalleryCard";
 import { generateGalleryItems } from "@/utils/galleryData";
 import { generateLayout, Position } from "@/utils/layoutGenerator";
+import { GalleryItem } from "@/types/gallery"; // Importamos la interfaz que movimos
 import { useEffect, useState } from "react";
 
 export default function GalleryPage() {
   const [positions, setPositions] = useState<(Position | null)[]>([]);
+  // 1. Iniciamos los items como un array vacío
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+  // 2. Añadimos un estado de carga explícito
+  const [isLoading, setIsLoading] = useState(true);
 
-  // OPTIMIZACIÓN: Generamos los items UNA sola vez al cargar la página.
-  // Esto evita que se "re-barajen" las fotos si el componente se renderiza de nuevo.
-  const [galleryItems] = useState(() => generateGalleryItems());
-
+  // EFECTO 1: Traer los datos de Sanity
   useEffect(() => {
-    // CAMBIO CLAVE AQUÍ:
-    // Ya no calculamos 'specialIndices'.
-    // Pasamos el array completo 'galleryItems' para que el generador sepa
-    // qué es un Proyecto, qué es About y qué es Relleno.
-    const layout = generateLayout(galleryItems.length, galleryItems);
+    const fetchItems = async () => {
+      try {
+        const items = await generateGalleryItems();
+        setGalleryItems(items);
+      } catch (error) {
+        console.error("Error cargando fotos de Sanity:", error);
+      }
+    };
 
-    setPositions(layout);
+    fetchItems();
+  }, []);
+
+  // EFECTO 2: Calcular el layout SOLO cuando ya tenemos las fotos
+  useEffect(() => {
+    // Verificamos que ya llegaron los items
+    if (galleryItems.length > 0) {
+      const layout = generateLayout(galleryItems.length, galleryItems);
+      setPositions(layout);
+      setIsLoading(false); // Terminamos de cargar
+    }
   }, [galleryItems]);
 
-  // Si no hay posiciones calculadas todavía, mostramos Loading
-  if (positions.length === 0) {
+  // Si está cargando datos de internet o calculando posiciones, mostramos Loading
+  if (isLoading) {
     return (
       <div className="h-screen w-screen bg-night flex items-center justify-center">
         <div className="text-sm text-dim-gray tracking-wider animate-pulse">
-          Loading gallery...
+          Cargando galería...
         </div>
       </div>
     );
@@ -41,8 +56,7 @@ export default function GalleryPage() {
 
           // Si la posición es null (significa que no cupo en la pantalla), no renderizamos nada
           if (!pos) {
-            // Solo lanzamos error si es una carta DE SISTEMA (About/Contact),
-            // ya que esas son obligatorias. Los proyectos o relleno pueden faltar sin problema.
+            // Solo lanzamos error si es una carta DE SISTEMA (About/Contact)
             if (
               item.specialType === "about" ||
               item.specialType === "contact"

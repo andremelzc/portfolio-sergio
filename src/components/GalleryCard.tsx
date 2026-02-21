@@ -2,59 +2,81 @@
 
 import { motion, useAnimation } from "framer-motion";
 import { useEffect } from "react";
-import { GalleryItem } from "@/utils/galleryData";
+import Link from "next/link"; // NUEVO: Importamos Link de Next.js
+import { GalleryItem } from "@/types/gallery";
 
 // --- COMPONENTE PARA SYSTEM CARDS (About / Contact) ---
-// Siguen rotando para llamar la atención
 function SystemCard({ item, index }: { item: GalleryItem; index: number }) {
   const controls = useAnimation();
 
   useEffect(() => {
-    const delay = index * 2; // Retraso para que no giren a la vez
+    // ... tu lógica de animación intacta ...
+    const delay = index * 2;
     const loop = async () => {
       await new Promise((r) => setTimeout(r, delay * 1000));
       while (true) {
-        await new Promise((r) => setTimeout(r, 5000)); // Giran cada 5s
-        await controls.start({ rotateY: 180, transition: { duration: 0.8 } });
+        await new Promise((r) => setTimeout(r, 5000));
+        await controls.start({
+          rotateY: 180,
+          transition: { duration: 0.8, ease: "easeInOut" },
+        });
         await new Promise((r) => setTimeout(r, 3000));
-        await controls.start({ rotateY: 360, transition: { duration: 0.8 } });
+        await controls.start({
+          rotateY: 360,
+          transition: { duration: 0.8, ease: "easeInOut" },
+        });
         controls.set({ rotateY: 0 });
       }
     };
     loop();
-  }, []);
+  }, [controls, index]);
 
+  // NUEVO: Envolvemos todo en un Link dinámico
+  // Si specialType es "about", el link será "/about"
   return (
-    <motion.div
-      className="relative w-full h-full z-50 cursor-pointer"
-      initial={{ scale: 0 }}
-      animate={{ scale: 1 }}
-      transition={{ delay: 0.1 }}
+    <Link
+      href={`/${item.specialType}`}
+      className="block w-full h-full relative z-50"
     >
       <motion.div
-        animate={controls}
-        className="w-full h-full relative preserve-3d"
-        style={{ transformStyle: "preserve-3d" }}
+        className="relative w-full h-full cursor-pointer"
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ delay: 0.1 }}
+        whileHover={{
+          scale: 1.05,
+          filter: "invert(1) hue-rotate(180deg)",
+          transition: { duration: 0.4 },
+        }}
       >
-        {/* FRENTE: Foto limpia */}
-        <div className="absolute inset-0 backface-hidden">
-          <img
-            src={item.src}
-            className="w-full h-full object-cover border-2 border-white/20"
-          />
-        </div>
-        {/* REVERSO: Info Negra con texto blanco */}
-        <div
-          className="absolute inset-0 backface-hidden bg-black flex flex-col items-center justify-center p-4 border-2 border-white"
-          style={{ transform: "rotateY(180deg)" }}
+        <motion.div
+          animate={controls}
+          className="w-full h-full relative preserve-3d"
+          style={{ transformStyle: "preserve-3d" }}
         >
-          <h3 className="text-xl font-bold uppercase tracking-widest text-white">
-            {item.title}
-          </h3>
-          <p className="text-xs text-gray-400 mt-2">{item.description}</p>
-        </div>
+          {/* FRENTE */}
+          <div className="absolute inset-0 backface-hidden">
+            <img src={item.src} className="w-full h-full object-cover" />
+          </div>
+
+          {/* REVERSO */}
+          <div
+            className="absolute inset-0 backface-hidden bg-black flex flex-col items-center justify-center p-4"
+            style={{ transform: "rotateY(180deg)" }}
+          >
+            <h3
+              className="text-3xl font-medium italic tracking-[0.2em] text-white text-center"
+              style={{ fontFamily: "Roboto, sans-serif" }}
+            >
+              {item.title}
+            </h3>
+            <p className="text-xs text-gray-500 mt-4 tracking-widest uppercase">
+              {item.description}
+            </p>
+          </div>
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </Link>
   );
 }
 
@@ -66,58 +88,68 @@ export default function GalleryCard({
   item: GalleryItem;
   index: number;
 }) {
-  // 1. SYSTEM CARDS (About, Contact) -> Componente especial que rota
-  if (
-    item.specialType === "about" ||
-    item.specialType === "contact" ||
-    item.specialType === "info"
-  ) {
+  // 1. SYSTEM CARDS
+  if (item.specialType === "about" || item.specialType === "contact") {
     return <SystemCard item={item} index={index} />;
   }
 
-  // 2. PROJECT CARDS (Nuevos trabajos) -> Estilo "Polaroid Oscura" con Título
+  // 2. PROJECT CARDS (Nuevos trabajos) -> Estilo Experimental
   if (item.specialType === "project") {
+    // NUEVO: Envolvemos en un Link hacia la ruta dinámica del proyecto
+    // Usamos item.slug que agregamos en la refactorización anterior
     return (
-      <motion.div
-        className="relative w-full h-full cursor-pointer overflow-hidden group bg-gray-900 border border-gray-700 shadow-xl"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        whileHover={{ scale: 1.1, zIndex: 60, borderColor: "#fff" }}
-        transition={{ duration: 0.4 }}
+      <Link
+        href={`/project/${item.slug || ""}`}
+        className="block w-full h-full relative z-50"
       >
-        <img
-          src={item.src}
-          className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
-        />
+        <motion.div
+          className="relative w-full h-full cursor-pointer overflow-hidden group bg-black"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          whileHover={{
+            scale: 1.05,
+            zIndex: 60,
+            filter: "invert(1) hue-rotate(180deg)",
+          }}
+          transition={{ duration: 0.4, ease: "easeInOut" }}
+        >
+          <img
+            src={item.src}
+            className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500"
+          />
 
-        {/* Etiqueta de Proyecto que aparece al Hover */}
-        <div className="absolute bottom-0 left-0 right-0 bg-black/90 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-          <p className="text-white text-xs font-bold uppercase tracking-widest text-center">
-            {item.title}
-          </p>
-          <p className="text-[10px] text-gray-400 text-center">
-            {item.description}
-          </p>
-        </div>
-
-        {/* Pequeño punto indicador de "Interactivo" */}
-        <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-white rounded-full opacity-50" />
-      </motion.div>
+          <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none">
+            <h3
+              className="text-2xl font-medium italic tracking-[0.2em] text-white mix-blend-difference text-center px-2"
+              style={{
+                fontFamily: "Roboto, sans-serif",
+                filter: "drop-shadow(0 0 10px rgba(255, 255, 255, 0.3))",
+              }}
+            >
+              {item.title}
+            </h3>
+          </div>
+        </motion.div>
+      </Link>
     );
   }
 
-  // 3. RELLENO (Filler) -> Fotos simples, más oscuras
+  // 3. RELLENO (Filler) -> Sigue siendo solo un motion.div (no es clickeable hacia otra página)
   return (
     <motion.div
-      className="relative w-full h-full overflow-hidden bg-gray-900"
+      className="relative w-full h-full overflow-hidden bg-black"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1, delay: Math.random() * 0.5 }}
-      whileHover={{ scale: 1.05, zIndex: 40, filter: "brightness(1.2)" }}
+      whileHover={{
+        scale: 1.02,
+        zIndex: 40,
+        filter: "invert(1) hue-rotate(180deg)",
+      }}
     >
       <img
         src={item.src}
-        className="w-full h-full object-cover opacity-60 hover:opacity-100 transition-all duration-500 grayscale hover:grayscale-0"
+        className="w-full h-full object-cover opacity-40 hover:opacity-80 transition-all duration-500 grayscale"
       />
     </motion.div>
   );
