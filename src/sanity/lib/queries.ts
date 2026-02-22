@@ -34,3 +34,11 @@ export const projectBySlugQuery = groq`
     date
   }
 `;
+
+// Query para obtener solo los slugs de los proyectos
+export const allProjectSlugsQuery = groq`
+  *[_type == "project"]{
+    title,
+    "slug": slug.current
+  }
+`;

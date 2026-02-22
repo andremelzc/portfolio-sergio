@@ -1,5 +1,10 @@
 import { client } from "./client";
-import { galleryQuery, homeImagesQuery, projectBySlugQuery } from "./queries";
+import {
+  allProjectSlugsQuery,
+  galleryQuery,
+  homeImagesQuery,
+  projectBySlugQuery,
+} from "./queries";
 
 // Obtener datos para el home
 export async function getHomeImages() {
@@ -28,6 +33,16 @@ export async function getProjectBySlug(slug: string) {
     return await client.fetch(projectBySlugQuery, { slug });
   } catch (error) {
     console.error(`Error fetching project with slug ${slug}:`, error);
+    return null;
+  }
+}
+
+// Obtener todos los proyectos
+export async function getAllProjectSlugs() {
+  try {
+    return await client.fetch(allProjectSlugsQuery);
+  } catch (error) {
+    console.error("Error fetching project slugs:", error);
     return null;
   }
 }
