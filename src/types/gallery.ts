@@ -6,4 +6,7 @@ export interface GalleryItem {
   title?: string;
   description?: string;
   slug?: string; // Nuevo campo para proyectos
+  naturalWidth?: number; // Ancho original de la imagen
+  naturalHeight?: number; // Alto original de la imagen
+  isFallback?: boolean; // Para marcar items que no se cargaron bien
 }

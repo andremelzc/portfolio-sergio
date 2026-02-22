@@ -6,35 +6,81 @@ export interface Position {
   rotation: number;
 }
 
-// Ahora recibimos el item completo, no solo el índice
 interface ItemWithPriority {
   index: number;
-  isSystem: boolean; // About, Contact
-  isProject: boolean; // Proyectos nuevos
-  isSpecial: boolean; // Cualquiera de los dos anteriores
+  isSystem: boolean;
+  isProject: boolean;
+  naturalWidth?: number;
+  naturalHeight?: number;
+  isFallback?: boolean;
 }
+
+const scaleToFit = (
+  naturalWidth: number,
+  naturalHeight: number,
+  maxSize: number,
+  minSize: number,
+): { width: number; height: number } => {
+  const aspect = naturalWidth / naturalHeight;
+
+  let width: number;
+  let height: number;
+
+  if (aspect >= 1) {
+    // Horizontal: el ancho es el lado largo
+    width = maxSize;
+    height = maxSize / aspect;
+  } else {
+    // Vertical: el alto es el lado largo
+    height = maxSize;
+    width = maxSize * aspect;
+  }
+
+  // Si queda muy pequeño, subimos al mínimo respetando el ratio
+  if (width < minSize && height < minSize) {
+    if (aspect >= 1) {
+      width = minSize;
+      height = minSize / aspect;
+    } else {
+      height = minSize;
+      width = minSize * aspect;
+    }
+  }
+
+  return { width, height };
+};
 
 export const generateLayout = (
   itemCount: number,
-  // CAMBIO: Recibimos el array completo de items para ver sus tipos
   items: any[],
 ): (Position | null)[] => {
   const positions: Position[] = [];
 
-  // --- NUEVAS MEDIDAS (ESCALA REDUCIDA) ---
-  const systemSize = 240; // Antes 320 (About/Contact)
-  const projectSize = 180; // Nuevo nivel intermedio (Proyectos)
+  // --- ESCALA JERÁRQUICA ---
+  // El maxSize define el lado más largo; el otro se calcula del aspect ratio
+  const systemMaxSize = 260; // About / Contact — presencia clara
+  const systemMinSize = 160;
 
-  const minFiller = 80; // Antes 120 (Fotos pequeñas)
-  const maxFiller = 140; // Antes 220 (Fotos medianas)
+  const projectMaxSize = 200; // Proyectos — un escalón abajo
+  const projectMinSize = 120;
 
-  const padding = 12;
+  const fillerMaxSize = 125; // Relleno — pequeño, atmosférico
+  const fillerMinSize = 65;
+
+  // Tamaños fijos para fallbacks (sin dimensiones naturales)
+  const systemFallbackSize = 240;
+  const projectFallbackSize = 180;
+  const fillerFallbackMin = 80;
+  const fillerFallbackMax = 130;
+
+  const padding = 28;
+  const edgeMargin = 40;
+
   const viewportWidth =
     typeof window !== "undefined" ? window.innerWidth : 1400;
   const viewportHeight =
     typeof window !== "undefined" ? window.innerHeight : 900;
 
-  // Clasificamos cada item por su importancia
   const itemsWithPriority: ItemWithPriority[] = items.map((item, index) => ({
     index,
     isSystem:
@@ -42,10 +88,12 @@ export const generateLayout = (
       item.specialType === "contact" ||
       item.specialType === "info",
     isProject: item.specialType === "project",
-    isSpecial: item.type === "special",
+    naturalWidth: item.naturalWidth,
+    naturalHeight: item.naturalHeight,
+    isFallback: item.isFallback,
   }));
 
-  // ORDEN DE COLOCACIÓN: Primero lo importante, luego el relleno
+  // Primero sistema, luego proyectos, luego relleno
   itemsWithPriority.sort((a, b) => {
     if (a.isSystem && !b.isSystem) return -1;
     if (!a.isSystem && b.isSystem) return 1;
@@ -57,65 +105,92 @@ export const generateLayout = (
   const placedPositions: (Position | null)[] = new Array(itemCount).fill(null);
 
   for (const item of itemsWithPriority) {
-    let attempts = 0;
-    // Damos más intentos a los importantes
-    const maxAttempts = item.isSpecial ? 800 : 1500;
-    let newPos: Position | null = null;
-    let overlapping = true;
+    const maxAttempts = item.isSystem || item.isProject ? 1500 : 800;
+    let placed = false;
 
-    while (overlapping && attempts < maxAttempts) {
-      let width, height;
+    for (let attempts = 0; attempts < maxAttempts; attempts++) {
+      let width: number;
+      let height: number;
 
-      if (item.isSystem) {
-        // TAMAÑO GRANDE (Pero reducido a 240px)
-        width = systemSize;
-        height = systemSize;
-      } else if (item.isProject) {
-        // TAMAÑO MEDIANO (Cuadrado para destacar)
-        width = projectSize;
-        height = projectSize;
+      const hasNaturalDims =
+        !item.isFallback && item.naturalWidth && item.naturalHeight;
+
+      if (hasNaturalDims) {
+        // ✅ Imagen real: respetamos aspect ratio, acotamos con maxSize
+        if (item.isSystem) {
+          const scaled = scaleToFit(
+            item.naturalWidth!,
+            item.naturalHeight!,
+            systemMaxSize,
+            systemMinSize,
+          );
+          width = scaled.width;
+          height = scaled.height;
+        } else if (item.isProject) {
+          const scaled = scaleToFit(
+            item.naturalWidth!,
+            item.naturalHeight!,
+            projectMaxSize,
+            projectMinSize,
+          );
+          width = scaled.width;
+          height = scaled.height;
+        } else {
+          const scaled = scaleToFit(
+            item.naturalWidth!,
+            item.naturalHeight!,
+            fillerMaxSize,
+            fillerMinSize,
+          );
+          width = scaled.width;
+          height = scaled.height;
+        }
       } else {
-        // TAMAÑO PEQUEÑO (Relleno)
-        width = Math.random() * (maxFiller - minFiller) + minFiller;
-        // Aspect Ratio variado (Vertical/Horizontal)
-        height = width * (0.6 + Math.random() * 0.8);
+        // ✅ Fallback: dimensiones fijas
+        if (item.isSystem) {
+          width = systemFallbackSize;
+          height = systemFallbackSize;
+        } else if (item.isProject) {
+          width = projectFallbackSize;
+          height = projectFallbackSize;
+        } else {
+          width =
+            Math.random() * (fillerFallbackMax - fillerFallbackMin) +
+            fillerFallbackMin;
+          height = width * (0.6 + Math.random() * 0.8);
+        }
       }
 
-      const x = Math.random() * (viewportWidth - width - padding);
-      const y = Math.random() * (viewportHeight - height - padding);
-      const rotation = (Math.random() - 0.5) * 8; // Rotación sutil
+      const x =
+        edgeMargin +
+        Math.random() * (viewportWidth - width - padding - edgeMargin * 2);
+      const y =
+        edgeMargin +
+        Math.random() * (viewportHeight - height - padding - edgeMargin * 2);
+      const rotation = (Math.random() - 0.5) * 8;
 
-      newPos = { x, y, width, height, rotation };
+      const newPos: Position = { x, y, width, height, rotation };
 
-      overlapping = positions.some((pos) => {
-        return !(
-          newPos!.x + newPos!.width + padding < pos.x ||
-          newPos!.x > pos.x + pos.width + padding ||
-          newPos!.y + newPos!.height + padding < pos.y ||
-          newPos!.y > pos.y + pos.height + padding
-        );
-      });
+      const overlapping = positions.some(
+        (pos) =>
+          !(
+            newPos.x + newPos.width + padding < pos.x ||
+            newPos.x > pos.x + pos.width + padding ||
+            newPos.y + newPos.height + padding < pos.y ||
+            newPos.y > pos.y + pos.height + padding
+          ),
+      );
 
-      attempts++;
+      if (!overlapping) {
+        positions.push(newPos);
+        placedPositions[item.index] = newPos;
+        placed = true;
+        break;
+      }
     }
 
-    if (!overlapping && newPos) {
-      positions.push(newPos);
-      placedPositions[item.index] = newPos;
-    } else if (item.isSystem || item.isProject) {
-      // FUERZA BRUTA: Si es System o Project, se pone SÍ O SÍ.
-      const size = item.isSystem ? systemSize : projectSize;
-
-      const forcedPos = {
-        x: Math.random() * (viewportWidth - size - padding),
-        y: Math.random() * (viewportHeight - size - padding),
-        width: size,
-        height: size,
-        rotation: 0,
-      };
-      positions.push(forcedPos);
-      placedPositions[item.index] = forcedPos;
-      console.warn(`Forzando posición para especial: ${item.index}`);
+    if (!placed) {
+      console.warn(`Item ${item.index} no pudo ser colocado sin overlap.`);
     }
   }
 

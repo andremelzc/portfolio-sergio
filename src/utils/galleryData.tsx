@@ -1,41 +1,55 @@
-// utils/galleryData.ts
 import { GalleryItem } from "@/types/gallery";
 import { getGalleryData } from "@/sanity/lib/api";
+
+// Carga las dimensiones naturales de una imagen desde su URL
+const getImageDimensions = (
+  src: string,
+): Promise<{ width: number; height: number }> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () =>
+      resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    img.onerror = () => resolve({ width: 300, height: 300 }); // fallback seguro
+    img.src = src;
+  });
+};
 
 export const generateGalleryItems = async (): Promise<GalleryItem[]> => {
   const items: GalleryItem[] = [];
   const totalItems = 50;
   let allFillerUrls: string[] = [];
 
-  // 1. Llamamos a nuestra nueva capa de API
   const data = await getGalleryData();
-
-  // 2. Extraemos la data (con fallback en caso de error)
   const settings = data?.settings;
   const projects = data?.projects;
 
-  // --- 3. CARTAS DE SISTEMA ---
+  // --- CARTAS DE SISTEMA ---
+  const aboutSrc = settings?.aboutUrl || "/gallery/about.jpg";
+  const contactSrc = settings?.contactUrl || "/gallery/contact.jpg";
+
   items.push({
     id: "about-card",
     type: "special",
     specialType: "about",
-    src: settings?.aboutUrl || "/gallery/about.jpg",
+    src: aboutSrc,
     title: "About",
     description: "Who I am",
-    slug: "about", // Agregamos slug para navegación
+    slug: "about",
+    isFallback: !settings?.aboutUrl, // ✅ es fallback si no viene de Sanity
   });
 
   items.push({
     id: "contact-card",
     type: "special",
     specialType: "contact",
-    src: settings?.contactUrl || "/gallery/contact.jpg",
+    src: contactSrc,
     title: "Contact",
     description: "Get in touch",
-    slug: "contact", // Agregamos slug para navegación
+    slug: "contact",
+    isFallback: !settings?.contactUrl,
   });
 
-  // --- 4. PROYECTOS Y RELLENO ---
+  // --- PROYECTOS Y RELLENO ---
   if (projects && projects.length > 0) {
     projects.forEach((proj: any) => {
       if (proj.coverUrl) {
@@ -47,6 +61,7 @@ export const generateGalleryItems = async (): Promise<GalleryItem[]> => {
           title: proj.title || "Untitled",
           description: "View Project",
           slug: proj.slug,
+          isFallback: false,
         });
       }
       if (proj.galleryUrls?.length > 0) {
@@ -62,20 +77,36 @@ export const generateGalleryItems = async (): Promise<GalleryItem[]> => {
       src: "/gallery/1.jpg",
       slug: "default-project",
       title: "Neon Nights",
+      isFallback: true, // ✅ este sí es fallback
     });
   }
 
-  // --- 5. RELLENO ---
+  // --- RELLENO ---
   const currentItemsCount = items.length;
   for (let i = 1; i <= totalItems - currentItemsCount; i++) {
-    let fillerSrc = `/gallery/${(i % 5) + 1}.jpg`;
-    if (allFillerUrls.length > 0) {
-      fillerSrc = allFillerUrls[i % allFillerUrls.length];
-    }
-    items.push({ id: `filler-${i}`, type: "image", src: fillerSrc });
+    const hasSanityFiller = allFillerUrls.length > 0;
+    const fillerSrc = hasSanityFiller
+      ? allFillerUrls[i % allFillerUrls.length]
+      : `/gallery/${(i % 5) + 1}.jpg`;
+
+    items.push({
+      id: `filler-${i}`,
+      type: "image",
+      src: fillerSrc,
+      isFallback: !hasSanityFiller, // ✅ fallback si son las locales
+    });
   }
 
-  return items
-    .sort((a, b) => (a.type === "special" ? -1 : 1))
-    .sort(() => Math.random() - 0.5);
+  // Pre-cargamos dimensiones SOLO de las imágenes reales (no fallbacks)
+  await Promise.all(
+    items.map(async (item) => {
+      if (!item.isFallback) {
+        const dims = await getImageDimensions(item.src);
+        item.naturalWidth = dims.width;
+        item.naturalHeight = dims.height;
+      }
+    }),
+  );
+
+  return items.sort(() => Math.random() - 0.5);
 };
