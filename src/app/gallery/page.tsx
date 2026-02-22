@@ -5,6 +5,7 @@ import { generateGalleryItems } from "@/utils/galleryData";
 import { generateLayout, Position } from "@/utils/layoutGenerator";
 import { GalleryItem } from "@/types/gallery";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
 export default function GalleryPage() {
   const [positions, setPositions] = useState<(Position | null)[]>([]);
@@ -34,9 +35,18 @@ export default function GalleryPage() {
   if (isLoading) {
     return (
       <div className="h-screen w-screen bg-night flex items-center justify-center">
-        <div className="text-sm text-dim-gray tracking-wider animate-pulse">
-          Cargando galería...
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 1, 0] }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="text-lg font-extralight text-white/20 italic"
+        >
+          {/* Opción A: Solo un punto o tu nombre muy tenue */}.
+        </motion.div>
       </div>
     );
   }
