@@ -10,3 +10,9 @@ export interface GalleryItem {
   naturalHeight?: number; // Alto original de la imagen
   isFallback?: boolean; // Para marcar items que no se cargaron bien
 }
+
+export interface Project {
+  title: string;
+  description: string;
+  galleryUrls: string[]; // URLs de las imágenes de la galería
+}
