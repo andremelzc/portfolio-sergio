@@ -162,7 +162,7 @@ export default function GalleryCard({
       <img
         src={item.src}
         alt="Atmosphere"
-        className="w-full h-full object-cover opacity-40 hover:opacity-80 transition-all duration-500 grayscale"
+        className="w-full h-full object-cover transition-all duration-500 grayscale"
       />
     </motion.div>
   );

@@ -8,11 +8,8 @@ import Link from "next/link";
 
 export default function Home() {
   const [isHovered, setIsHovered] = useState(false);
-
-  // Iniciamos con tu imagen de fallback por defecto
   const [heroImage, setHeroImage] = useState("/EXAMPLE_IMAGE3.jpg");
 
-  // Traemos la imagen de Sanity al cargar la página
   useEffect(() => {
     const fetchImages = async () => {
       const homeImages = await getHomeImages();
@@ -24,7 +21,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden">
+    <div className="relative h-svh w-screen overflow-hidden">
       {/* IMAGEN DE FONDO */}
       <motion.div
         className="absolute inset-0"
@@ -40,10 +37,10 @@ export default function Home() {
         }}
       >
         <Image
-          src={heroImage} // ¡Ahora sí usa la variable!
+          src={heroImage}
           alt="Hero"
           fill
-          className="object-cover"
+          className="object-cover object-center"
           priority
           quality={95}
           sizes="100vw"
@@ -54,7 +51,7 @@ export default function Home() {
       <div className="absolute inset-0 flex items-center justify-center z-10">
         <Link href="/gallery" className="pointer-events-auto">
           <h1
-            className="text-4xl font-medium italic tracking-[0.25em] text-white cursor-pointer mix-blend-difference select-none"
+            className="text-3xl sm:text-4xl md:text-5xl font-medium italic tracking-[0.2em] sm:tracking-[0.25em] text-white cursor-pointer mix-blend-difference select-none px-4 text-center"
             style={{
               fontFamily: "Roboto, sans-serif",
               textShadow:
@@ -63,6 +60,8 @@ export default function Home() {
             }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            onTouchStart={() => setIsHovered(true)}
+            onTouchEnd={() => setIsHovered(false)}
           >
             Sergio Melendez
           </h1>
