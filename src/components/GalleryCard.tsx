@@ -6,7 +6,15 @@ import { useRouter } from "next/navigation"; // Hook para navegación
 import { GalleryItem } from "@/types/gallery";
 
 // --- COMPONENTE PARA SYSTEM CARDS (About / Contact) ---
-function SystemCard({ item, index }: { item: GalleryItem; index: number }) {
+function SystemCard({
+  item,
+  index,
+  onTap,
+}: {
+  item: GalleryItem;
+  index: number;
+  onTap?: () => void;
+}) {
   const controls = useAnimation();
   const router = useRouter(); // Instanciamos el router
 
@@ -46,7 +54,7 @@ function SystemCard({ item, index }: { item: GalleryItem; index: number }) {
       animate={{ scale: 1 }}
       transition={{ delay: 0.1 }}
       // Navegación al hacer click
-      onClick={() => router.push(`/${item.specialType}`)}
+      onClick={() => (onTap ? onTap() : router.push(`/${item.specialType}`))}
       whileHover={{
         scale: 1.05,
         filter: "invert(1) hue-rotate(180deg)",
@@ -103,14 +111,16 @@ function SystemCard({ item, index }: { item: GalleryItem; index: number }) {
 export default function GalleryCard({
   item,
   index,
+  onTap,
 }: {
   item: GalleryItem;
   index: number;
+  onTap?: () => void;
 }) {
   const router = useRouter();
 
   if (item.specialType === "about" || item.specialType === "contact") {
-    return <SystemCard item={item} index={index} />;
+    return <SystemCard item={item} index={index} onTap={onTap} />;
   }
 
   if (item.specialType === "project") {
@@ -119,7 +129,7 @@ export default function GalleryCard({
         className="relative w-full h-full z-50 cursor-pointer overflow-hidden group bg-black"
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
-        onClick={() => router.push(`/project/${item.slug || ""}`)}
+        onClick={() => (onTap ? onTap() : router.push(`/project/${item.slug || ""}`))}
         whileHover={{
           scale: 1.05,
           zIndex: 60,
@@ -153,6 +163,7 @@ export default function GalleryCard({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1, delay: Math.random() * 0.5 }}
+      onClick={onTap}
       whileHover={{
         scale: 1.02,
         zIndex: 40,

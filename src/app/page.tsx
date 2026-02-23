@@ -25,16 +25,15 @@ export default function Home() {
       {/* IMAGEN DE FONDO */}
       <motion.div
         className="absolute inset-0"
+        initial={{ opacity: 0, scale: 1.05 }}
         animate={{
+          opacity: 1,
+          scale: isHovered ? 1.02 : 1,
           filter: isHovered
             ? "invert(1) hue-rotate(180deg)"
             : "invert(0) hue-rotate(0deg)",
-          scale: isHovered ? 1.02 : 1,
         }}
-        transition={{
-          duration: 0.6,
-          ease: "easeInOut",
-        }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
       >
         <Image
           src={heroImage}
@@ -50,7 +49,10 @@ export default function Home() {
       {/* NOMBRE CENTRADO CON HOVER */}
       <div className="absolute inset-0 flex items-center justify-center z-10">
         <Link href="/gallery" className="pointer-events-auto">
-          <h1
+          <motion.h1
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
             className="text-3xl sm:text-4xl md:text-5xl font-medium italic tracking-[0.2em] sm:tracking-[0.25em] text-white cursor-pointer mix-blend-difference select-none px-4 text-center"
             style={{
               fontFamily: "Roboto, sans-serif",
@@ -64,7 +66,7 @@ export default function Home() {
             onTouchEnd={() => setIsHovered(false)}
           >
             Sergio Melendez
-          </h1>
+          </motion.h1>
         </Link>
       </div>
     </div>

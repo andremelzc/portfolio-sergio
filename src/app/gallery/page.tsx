@@ -16,6 +16,7 @@ export default function GalleryPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(1);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [overlayItem, setOverlayItem] = useState<GalleryItem | null>(null);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -65,6 +66,13 @@ export default function GalleryPage() {
     setTouchStart(null);
   };
 
+  // Auto-avance cada 4s, pausado si hay overlay abierto
+  useEffect(() => {
+    if (!isMobile || overlayItem) return;
+    const timer = setInterval(goNext, 4000);
+    return () => clearInterval(timer);
+  }, [isMobile, currentIndex, overlayItem]);
+
   if (isLoading) {
     return (
       <div className="h-svh w-screen bg-night flex items-center justify-center">
@@ -101,6 +109,13 @@ export default function GalleryPage() {
         onTouchEnd={handleTouchEnd}
       >
         <Sidebar />
+
+        {/* ZONAS DE CLICK izquierda / derecha */}
+        <div className="absolute inset-0 z-20 flex pointer-events-none">
+          <div className="w-1/2 h-full pointer-events-auto" onClick={goPrev} />
+          <div className="w-1/2 h-full pointer-events-auto" onClick={goNext} />
+        </div>
+
         <AnimatePresence custom={direction} mode="wait">
           <motion.div
             key={currentIndex}
@@ -110,19 +125,44 @@ export default function GalleryPage() {
             animate="center"
             exit="exit"
             transition={{ duration: 0.35, ease: "easeInOut" }}
-            className="absolute inset-0 flex items-center justify-center p-8"
+            className="absolute inset-0 flex items-center justify-center p-8 z-10"
           >
-            {/*
-              Contenedor que respeta el aspect ratio de la imagen.
-              max-w y max-h aseguran que nunca se salga de la pantalla con el padding.
-            */}
             <div
               style={{ aspectRatio }}
               className="w-full max-w-full max-h-full"
             >
-              <GalleryCard item={item} index={currentIndex} />
+              <GalleryCard
+                item={item}
+                index={currentIndex}
+                onTap={() => setOverlayItem(item)}
+              />
             </div>
           </motion.div>
+        </AnimatePresence>
+
+        {/* OVERLAY */}
+        <AnimatePresence>
+          {overlayItem && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 z-[300] bg-black/90 flex items-center justify-center p-6"
+              onClick={() => setOverlayItem(null)}
+            >
+              <motion.img
+                src={overlayItem.src}
+                alt={overlayItem.title || ""}
+                initial={{ scale: 0.92, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.92, opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="max-w-full max-h-full object-contain"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     );
