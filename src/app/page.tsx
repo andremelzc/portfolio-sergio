@@ -8,26 +8,27 @@ import Link from "next/link";
 
 export default function Home() {
   const [isHovered, setIsHovered] = useState(false);
-  const [heroImage, setHeroImage] = useState("/EXAMPLE_IMAGE3.jpg");
+  // Guardamos el objeto completo para tener las dimensiones y el desenfoque
+  const [heroData, setHeroData] = useState<any>(null);
 
   useEffect(() => {
     const fetchImages = async () => {
       const homeImages = await getHomeImages();
       if (homeImages?.image1) {
-        setHeroImage(homeImages.image1);
+        setHeroData(homeImages.image1);
       }
     };
     fetchImages();
   }, []);
 
   return (
-    <div className="relative h-svh w-screen overflow-hidden">
+    <div className="relative h-svh w-screen overflow-hidden bg-night">
       {/* IMAGEN DE FONDO */}
       <motion.div
         className="absolute inset-0"
         initial={{ opacity: 0, scale: 1.05 }}
         animate={{
-          opacity: 1,
+          opacity: heroData ? 1 : 0, // Solo aparece cuando tenemos la data
           scale: isHovered ? 1.02 : 1,
           filter: isHovered
             ? "invert(1) hue-rotate(180deg)"
@@ -35,15 +36,20 @@ export default function Home() {
         }}
         transition={{ duration: 0.8, ease: "easeOut" }}
       >
-        <Image
-          src={heroImage}
-          alt="Hero"
-          fill
-          className="object-cover object-center"
-          priority
-          quality={95}
-          sizes="100vw"
-        />
+        {heroData && (
+          <Image
+            // Aplicamos los parámetros de Sanity directamente en el src
+            src={`${heroData.url}?w=1920&q=90&auto=format`}
+            alt="Sergio Melendez Hero"
+            fill
+            className="object-cover object-center"
+            priority // Esto le dice al navegador: "Bájala antes que nada"
+            sizes="100vw"
+            // Si añadiste lqip en la query, puedes usar placeholder="blur"
+            placeholder={heroData.metadata?.lqip ? "blur" : "empty"}
+            blurDataURL={heroData.metadata?.lqip}
+          />
+        )}
       </motion.div>
 
       {/* NOMBRE CENTRADO CON HOVER */}

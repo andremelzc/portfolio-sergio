@@ -6,7 +6,6 @@ import { generateLayout, Position } from "@/utils/layoutGenerator";
 import { GalleryItem } from "@/types/gallery";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Sidebar from "@/components/Sidebar";
 
 export default function GalleryPage() {
   const [positions, setPositions] = useState<(Position | null)[]>([]);
@@ -29,6 +28,7 @@ export default function GalleryPage() {
     const init = async () => {
       try {
         const items = await generateGalleryItems();
+        console.log("Generated gallery items:", items);
         const layout = generateLayout(items.length, items);
         setGalleryItems(items);
         setPositions(layout);
@@ -66,7 +66,6 @@ export default function GalleryPage() {
     setTouchStart(null);
   };
 
-  // Auto-avance cada 4s, pausado si hay overlay abierto
   useEffect(() => {
     if (!isMobile || overlayItem) return;
     const timer = setInterval(goNext, 4000);
@@ -108,9 +107,7 @@ export default function GalleryPage() {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        <Sidebar />
 
-        {/* ZONAS DE CLICK izquierda / derecha */}
         <div className="absolute inset-0 z-20 flex pointer-events-none">
           <div className="w-1/2 h-full pointer-events-auto" onClick={goPrev} />
           <div className="w-1/2 h-full pointer-events-auto" onClick={goNext} />
@@ -132,32 +129,39 @@ export default function GalleryPage() {
               className="w-full max-w-full max-h-full"
             >
               <GalleryCard
-                item={item}
-                index={currentIndex}
+                item={{
+                  ...item,
+                  src: item.isFallback
+                    ? item.src
+                    : `${item.src}?w=800&q=75&auto=format`,
+                }}
+                index={currentIndex} // <-- CORREGIDO: antes decía index
                 onTap={() => setOverlayItem(item)}
               />
             </div>
           </motion.div>
         </AnimatePresence>
 
-        {/* OVERLAY */}
+        {/* OVERLAY MOBILE */}
         <AnimatePresence>
           {overlayItem && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
               className="fixed inset-0 z-[300] bg-black/90 flex items-center justify-center p-6"
               onClick={() => setOverlayItem(null)}
             >
               <motion.img
-                src={overlayItem.src}
+                src={
+                  overlayItem.isFallback
+                    ? overlayItem.src
+                    : `${overlayItem.src}?w=1200&q=90&auto=format`
+                }
                 alt={overlayItem.title || ""}
                 initial={{ scale: 0.92, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.92, opacity: 0 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
                 className="max-w-full max-h-full object-contain"
                 onClick={(e) => e.stopPropagation()}
               />
@@ -190,7 +194,15 @@ export default function GalleryPage() {
                 transition: "top 0.5s ease, left 0.5s ease",
               }}
             >
-              <GalleryCard item={item} index={index} />
+              <GalleryCard
+                item={{
+                  ...item,
+                  src: item.isFallback
+                    ? item.src
+                    : `${item.src}?w=800&q=75&auto=format`,
+                }}
+                index={index}
+              />
             </div>
           );
         })}

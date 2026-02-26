@@ -8,7 +8,6 @@ import { PortableText } from "@portabletext/react";
 
 export default function ProjectTemplate({ project }: { project: Project }) {
   const [index, setIndex] = useState(0);
-
   const [direction, setDirection] = useState(1);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const images = project.galleryUrls || [];
@@ -24,19 +23,19 @@ export default function ProjectTemplate({ project }: { project: Project }) {
   };
 
   return (
-    <main className="min-h-svh bg-night text-white flex overflow-hidden">
+    <main className="h-svh bg-night text-white flex overflow-hidden">
       <Sidebar />
 
-      <div className="flex-1 flex flex-col md:ml-48">
+      <div className="flex-1 flex flex-col md:ml-48 overflow-hidden">
         {/* SECCIÓN 1: Texto */}
-        <section className="min-h-[40vh] flex items-center justify-center p-8 pt-20 md:pt-8">
+        <section className="flex-1 flex items-center justify-center p-8 pt-20 md:pt-8">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8 }}
             className="max-w-xl w-full"
           >
-            <h1 className="text-[10px] uppercase tracking-[0.5em] text-white/30 italic mb-8">
+            <h1 className="text-[11px] uppercase tracking-[0.5em] text-white/30 italic mb-10">
               {project.title}
             </h1>
 
@@ -51,9 +50,9 @@ export default function ProjectTemplate({ project }: { project: Project }) {
         </section>
 
         {/* SECCIÓN 2: Carrusel */}
-        <section className="flex-1 flex flex-col items-center justify-start group pb-12 px-4 md:px-12">
+        <section className="shrink-0 flex flex-col items-center pb-8 px-4 md:px-12">
           <div
-            className="relative w-full max-w-4xl h-[50vh] md:h-[55vh] overflow-hidden"
+            className="relative w-full max-w-4xl h-[38vh] overflow-hidden"
             onTouchStart={(e) => setTouchStart(e.touches[0].clientX)}
             onTouchEnd={(e) => {
               if (touchStart === null) return;
@@ -100,12 +99,10 @@ export default function ProjectTemplate({ project }: { project: Project }) {
           </div>
 
           {/* Contador */}
-          <div className="mt-6 flex flex-col items-center">
-            <p className="text-[10px] tracking-[0.4em] text-white/40 italic">
-              {String(index + 1).padStart(2, "0")} /{" "}
-              {String(images.length).padStart(2, "0")}
-            </p>
-          </div>
+          <p className="mt-4 text-[10px] tracking-[0.4em] text-white/40 italic">
+            {String(index + 1).padStart(2, "0")} /{" "}
+            {String(images.length).padStart(2, "0")}
+          </p>
         </section>
       </div>
     </main>

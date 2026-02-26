@@ -2,6 +2,7 @@ import { client } from "./client";
 import {
   allProjectSlugsQuery,
   galleryQuery,
+  homeDataQuery,
   homeImagesQuery,
   projectBySlugQuery,
 } from "./queries";
@@ -45,4 +46,15 @@ export async function getAllProjectSlugs() {
     console.error("Error fetching project slugs:", error);
     return null;
   }
+}
+
+// Obtener las imágenes de la galería
+export async function getHomeData() {
+  const data = await client.fetch(homeDataQuery);
+
+  return {
+    settings: data.settings,
+    // Desordenamos solo el portfolio para que el orden sea al azar
+    portfolio: data.portfolio.sort(() => Math.random() - 0.5)
+  };
 }

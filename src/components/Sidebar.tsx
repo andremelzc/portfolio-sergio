@@ -1,11 +1,10 @@
-// Sidebar.tsx
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getAllProjectSlugs } from "@/sanity/lib/api";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -13,6 +12,7 @@ export default function Sidebar() {
     [],
   );
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [desktopOpen, setDesktopOpen] = useState(true);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -22,7 +22,6 @@ export default function Sidebar() {
     fetchProjects();
   }, []);
 
-  // Cierra el menu al navegar
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
@@ -51,7 +50,7 @@ export default function Sidebar() {
           );
         })}
       </div>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-2">
         {projects.map((project) => {
           const href = `/project/${project.slug}`;
           const isActive = pathname === href;
@@ -73,15 +72,41 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* DESKTOP: sidebar fijo como antes */}
-      <nav className="hidden md:flex fixed left-0 top-0 h-full w-48 flex-col justify-start py-12 px-8 z-[100] bg-night">
-        <NavLinks />
-      </nav>
+      {/* DESKTOP */}
+      <div className="hidden md:block">
+        <div className="fixed left-0 top-0 h-full z-[100] flex">
+          {desktopOpen && (
+            <nav className="flex flex-col justify-start py-12 px-8 bg-night w-48">
+              <button
+                onClick={() => setDesktopOpen(false)}
+                className="text-white/30 hover:text-white/80 transition-colors duration-200 text-lg font-light leading-none text-left mb-8"
+                aria-label="Cerrar menú"
+              >
+                ×
+              </button>
+              <NavLinks />
+            </nav>
+          )}
+
+          {/* Franja siempre visible */}
+          <div className="w-px h-full bg-white/10 relative">
+            {!desktopOpen && (
+              <button
+                onClick={() => setDesktopOpen(true)}
+                className="absolute top-12 left-8 text-white/30 hover:text-white/80 transition-colors duration-200 text-lg font-light leading-none"
+                aria-label="Abrir menú"
+              >
+                +
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* MOBILE: botón + */}
       <button
         onClick={() => setMobileOpen((prev) => !prev)}
-        className="md:hidden fixed top-5 left-5 z-[200] text-white/70 hover:text-white text-2xl font-light leading-none"
+        className="md:hidden fixed top-5 left-5 z-[500] text-white/70 hover:text-white text-2xl font-light leading-none"
         aria-label="Menu"
       >
         {mobileOpen ? "×" : "+"}
