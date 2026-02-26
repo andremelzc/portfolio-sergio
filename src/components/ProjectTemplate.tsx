@@ -35,7 +35,7 @@ export default function ProjectTemplate({ project }: { project: Project }) {
     <main className="min-h-svh bg-night text-white flex">
       <Sidebar />
 
-      <div className="flex-1 flex flex-col md:ml-48 px-4 md:px-12 py-8 md:py-12 gap-8 md:gap-20">
+      <div className="flex-1 flex flex-col md:ml-48 px-4 md:px-12 py-8 md:py-12 gap-8 md:gap-12">
         {/* Título */}
         <h1 className="text-[10px] md:text-[11px] uppercase tracking-[0.5em] text-white/30 italic text-center mt-10 md:mt-0">
           {project.title}
@@ -44,7 +44,7 @@ export default function ProjectTemplate({ project }: { project: Project }) {
         {/* Carrusel */}
         <div className="w-full flex flex-col">
           <div
-            className="relative w-full h-[45vh] md:h-[70vh] overflow-hidden"
+            className="relative w-full h-[50vh] md:h-[80vh] overflow-hidden"
             onTouchStart={(e) => setTouchStart(e.touches[0].clientX)}
             onTouchEnd={(e) => {
               if (touchStart === null) return;
