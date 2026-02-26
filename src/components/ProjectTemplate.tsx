@@ -27,8 +27,8 @@ export default function ProjectTemplate({ project }: { project: Project }) {
       <Sidebar />
 
       <div className="flex-1 flex flex-col md:ml-48 overflow-hidden">
-        {/* SECCIÓN 1: Texto */}
-        <section className="flex-1 flex items-center justify-center p-8 pt-20 md:pt-8">
+        <div className="flex-1 flex flex-col items-center justify-center gap-10 px-4 md:px-12 py-8">
+          {/* Texto */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -38,7 +38,6 @@ export default function ProjectTemplate({ project }: { project: Project }) {
             <h1 className="text-[11px] uppercase tracking-[0.5em] text-white/30 italic mb-10">
               {project.title}
             </h1>
-
             <div className="text-base md:text-xl font-extralight text-white italic text-left leading-relaxed">
               {typeof project.description === "string" ? (
                 <p>{project.description}</p>
@@ -47,63 +46,63 @@ export default function ProjectTemplate({ project }: { project: Project }) {
               )}
             </div>
           </motion.div>
-        </section>
 
-        {/* SECCIÓN 2: Carrusel */}
-        <section className="shrink-0 flex flex-col items-center pb-8 px-4 md:px-12">
-          <div
-            className="relative w-full max-w-4xl h-[38vh] overflow-hidden"
-            onTouchStart={(e) => setTouchStart(e.touches[0].clientX)}
-            onTouchEnd={(e) => {
-              if (touchStart === null) return;
-              const delta = touchStart - e.changedTouches[0].clientX;
-              if (Math.abs(delta) > 50) delta > 0 ? nextImage() : prevImage();
-              setTouchStart(null);
-            }}
-          >
-            {/* Zonas de click */}
-            <div className="absolute inset-0 z-20 flex">
-              <div
-                className="w-1/2 h-full cursor-w-resize"
-                onClick={prevImage}
-              />
-              <div
-                className="w-1/2 h-full cursor-e-resize"
-                onClick={nextImage}
-              />
+          {/* Carrusel */}
+          <div className="max-w-xl w-full flex flex-col">
+            <div
+              className="relative w-full h-[38vh] overflow-hidden"
+              onTouchStart={(e) => setTouchStart(e.touches[0].clientX)}
+              onTouchEnd={(e) => {
+                if (touchStart === null) return;
+                const delta = touchStart - e.changedTouches[0].clientX;
+                if (Math.abs(delta) > 50) delta > 0 ? nextImage() : prevImage();
+                setTouchStart(null);
+              }}
+            >
+              {/* Zonas de click */}
+              <div className="absolute inset-0 z-20 flex">
+                <div
+                  className="w-1/2 h-full cursor-w-resize"
+                  onClick={prevImage}
+                />
+                <div
+                  className="w-1/2 h-full cursor-e-resize"
+                  onClick={nextImage}
+                />
+              </div>
+
+              <AnimatePresence custom={direction} mode="wait">
+                <motion.img
+                  key={index}
+                  src={images[index]}
+                  custom={direction}
+                  variants={{
+                    enter: (dir: number) => ({
+                      x: dir > 0 ? "100%" : "-100%",
+                      opacity: 0,
+                    }),
+                    center: { x: 0, opacity: 1 },
+                    exit: (dir: number) => ({
+                      x: dir > 0 ? "-100%" : "100%",
+                      opacity: 0,
+                    }),
+                  }}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{ duration: 0.35, ease: "easeInOut" }}
+                  className="absolute inset-0 w-full h-full object-contain grayscale"
+                />
+              </AnimatePresence>
             </div>
 
-            <AnimatePresence custom={direction} mode="wait">
-              <motion.img
-                key={index}
-                src={images[index]}
-                custom={direction}
-                variants={{
-                  enter: (dir: number) => ({
-                    x: dir > 0 ? "100%" : "-100%",
-                    opacity: 0,
-                  }),
-                  center: { x: 0, opacity: 1 },
-                  exit: (dir: number) => ({
-                    x: dir > 0 ? "-100%" : "100%",
-                    opacity: 0,
-                  }),
-                }}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.35, ease: "easeInOut" }}
-                className="absolute inset-0 w-full h-full object-contain grayscale"
-              />
-            </AnimatePresence>
+            {/* Contador */}
+            <p className="mt-4 text-[10px] tracking-[0.4em] text-white/40 italic text-center">
+              {String(index + 1).padStart(2, "0")} /{" "}
+              {String(images.length).padStart(2, "0")}
+            </p>
           </div>
-
-          {/* Contador */}
-          <p className="mt-4 text-[10px] tracking-[0.4em] text-white/40 italic">
-            {String(index + 1).padStart(2, "0")} /{" "}
-            {String(images.length).padStart(2, "0")}
-          </p>
-        </section>
+        </div>
       </div>
     </main>
   );
