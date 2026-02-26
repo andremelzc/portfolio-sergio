@@ -35,16 +35,16 @@ export default function ProjectTemplate({ project }: { project: Project }) {
     <main className="min-h-svh bg-night text-white flex">
       <Sidebar />
 
-      <div className="flex-1 flex flex-col md:ml-48 px-4 md:px-12 py-12 gap-20">
+      <div className="flex-1 flex flex-col md:ml-48 px-4 md:px-12 py-8 md:py-12 gap-8 md:gap-20">
         {/* Título */}
-        <h1 className="text-[11px] uppercase tracking-[0.5em] text-white/30 italic text-center">
+        <h1 className="text-[10px] md:text-[11px] uppercase tracking-[0.5em] text-white/30 italic text-center mt-10 md:mt-0">
           {project.title}
         </h1>
 
         {/* Carrusel */}
         <div className="w-full flex flex-col">
           <div
-            className="relative w-full h-[70vh] overflow-hidden"
+            className="relative w-full h-[45vh] md:h-[70vh] overflow-hidden"
             onTouchStart={(e) => setTouchStart(e.touches[0].clientX)}
             onTouchEnd={(e) => {
               if (touchStart === null) return;
@@ -91,7 +91,7 @@ export default function ProjectTemplate({ project }: { project: Project }) {
           </div>
 
           {/* Contador */}
-          <p className="mt-4 text-[10px] tracking-[0.4em] text-white/40 italic text-center">
+          <p className="mt-3 text-[10px] tracking-[0.4em] text-white/40 italic text-center">
             {String(index + 1).padStart(2, "0")} /{" "}
             {String(images.length).padStart(2, "0")}
           </p>
@@ -102,9 +102,9 @@ export default function ProjectTemplate({ project }: { project: Project }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
-          className="max-w-xl self-center"
+          className="max-w-xl self-center w-full pb-8 md:pb-0"
         >
-          <div className="text-base md:text-xl font-extralight text-white italic text-left leading-relaxed text-center">
+          <div className="text-sm md:text-xl font-extralight text-white italic leading-relaxed text-center">
             {typeof project.description === "string" ? (
               <p>{project.description}</p>
             ) : (

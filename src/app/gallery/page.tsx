@@ -10,6 +10,7 @@ import { generateLayout, Position } from "@/utils/layoutGenerator";
 import { GalleryItem } from "@/types/gallery";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Sidebar from "@/components/Sidebar";
 
 const REFRESH_INTERVAL = 10000;
 
@@ -130,6 +131,7 @@ export default function GalleryPage() {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
+        <Sidebar />
         <div className="absolute inset-0 z-20 flex pointer-events-none">
           <div className="w-1/2 h-full pointer-events-auto" onClick={goPrev} />
           <div className="w-1/2 h-full pointer-events-auto" onClick={goNext} />
