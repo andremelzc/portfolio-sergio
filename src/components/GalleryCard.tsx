@@ -16,7 +16,7 @@ function SystemCard({
   onTap?: () => void;
 }) {
   const controls = useAnimation();
-  const router = useRouter(); // Instanciamos el router
+  const router = useRouter();
 
   useEffect(() => {
     let mounted = true;
@@ -41,7 +41,6 @@ function SystemCard({
       }
     };
     loop();
-
     return () => {
       mounted = false;
     };
@@ -49,18 +48,16 @@ function SystemCard({
 
   return (
     <motion.div
-      className="relative w-full h-full z-50 cursor-pointer"
+      className="relative w-full h-full z-50 cursor-pointer group"
       initial={{ scale: 0 }}
       animate={{ scale: 1 }}
       transition={{ delay: 0.1 }}
-      // Navegación al hacer click
       onClick={() => (onTap ? onTap() : router.push(`/${item.specialType}`))}
       whileHover={{
         scale: 1.05,
         filter: "invert(1) hue-rotate(180deg)",
         transition: { duration: 0.4 },
       }}
-      // IMPORTANTE: El preserve-3d debe estar en el contenedor que tiene las caras
       style={{ transformStyle: "preserve-3d" }}
     >
       <motion.div
@@ -81,11 +78,25 @@ function SystemCard({
             alt={item.title}
             className="w-full h-full object-cover"
           />
+          {/* Título en hover — SystemCard */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+            <div className="absolute inset-0 bg-black/40" />
+            <h3
+              className="relative font-light italic text-white text-center leading-tight break-words w-full px-3"
+              style={{
+                fontFamily: "Roboto, sans-serif",
+                fontSize: "clamp(16px, 25%, 38px)",
+                letterSpacing: "0.3em",
+              }}
+            >
+              {item.title}
+            </h3>
+          </div>
         </div>
 
         {/* REVERSO */}
         <div
-          className="absolute inset-0 w-full h-full bg-black flex flex-col items-center justify-center p-4"
+          className="absolute inset-0 w-full h-full bg-black flex items-center justify-center p-4"
           style={{
             transform: "rotateY(180deg)",
             backfaceVisibility: "hidden",
@@ -93,14 +104,16 @@ function SystemCard({
           }}
         >
           <h3
-            className="text-3xl font-medium italic tracking-[0.2em] text-white text-center"
-            style={{ fontFamily: "Roboto, sans-serif" }}
+            className="text-white italic text-center leading-tight"
+            style={{
+              fontFamily: "Roboto, sans-serif",
+              fontSize: "clamp(14px, 18%, 28px)",
+              letterSpacing: "0.3em",
+              fontWeight: 300,
+            }}
           >
             {item.title}
           </h3>
-          <p className="text-xs text-gray-500 mt-4 tracking-widest uppercase text-center">
-            {item.description}
-          </p>
         </div>
       </motion.div>
     </motion.div>
@@ -129,7 +142,9 @@ export default function GalleryCard({
         className="relative w-full h-full z-50 cursor-pointer overflow-hidden group bg-black"
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
-        onClick={() => (onTap ? onTap() : router.push(`/project/${item.slug || ""}`))}
+        onClick={() =>
+          onTap ? onTap() : router.push(`/project/${item.slug || ""}`)
+        }
         whileHover={{
           scale: 1.05,
           zIndex: 60,
@@ -142,12 +157,14 @@ export default function GalleryCard({
           alt={item.title}
           className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500"
         />
-        <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none">
+          <div className="absolute inset-0 bg-black/40" />
           <h3
-            className="text-2xl font-medium italic tracking-[0.2em] text-white mix-blend-difference text-center px-2"
+            className="relative font-medium italic text-white text-center leading-tight break-words w-full px-3"
             style={{
               fontFamily: "Roboto, sans-serif",
-              filter: "drop-shadow(0 0 10px rgba(255, 255, 255, 0.3))",
+              fontSize: "clamp(11px, 15%, 22px)",
+              letterSpacing: "0.1em",
             }}
           >
             {item.title}
@@ -156,7 +173,6 @@ export default function GalleryCard({
       </motion.div>
     );
   }
-
   return (
     <motion.div
       className="relative w-full h-full overflow-hidden bg-black"

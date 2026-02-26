@@ -35,24 +35,20 @@ export const homeDataQuery = groq`{
     "about": aboutImage.asset->url,
     "contact": contactImage.asset->url
   },
-  "portfolio": (
-    // Traemos las imágenes del Array de Gallery y las convertimos en una lista plana
-    *[_type == "gallery"][0].images[] {
-      "id": _key, // Las imágenes en arrays usan _key como ID
-      "type": "gallery",
-      "url": asset->url,
-      "metadata": asset->metadata { dimensions }
-    } + 
-    // Las sumamos a los proyectos
-    *[_type == "project"] {
-      "id": _id,
-      "type": "project",
-      "title": title,
-      "url": coverImage.asset->url,
-      "slug": slug.current,
-      "metadata": coverImage.asset->metadata { dimensions }
-    }
-  ) [0...39]
+  "projects": *[_type == "project"] {
+    "id": _id,
+    "type": "project",
+    "title": title,
+    "url": coverImage.asset->url,
+    "slug": slug.current,
+    "metadata": coverImage.asset->metadata { dimensions }
+  },
+  "gallery": *[_type == "gallery"][0].images[] {
+    "id": _key,
+    "type": "gallery",
+    "url": asset->url,
+    "metadata": asset->metadata { dimensions }
+  }
 }`;
 
 export const projectBySlugQuery = groq`

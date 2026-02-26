@@ -50,11 +50,7 @@ export async function getAllProjectSlugs() {
 
 // Obtener las imágenes de la galería
 export async function getHomeData() {
-  const data = await client.fetch(homeDataQuery);
-
-  return {
-    settings: data.settings,
-    // Desordenamos solo el portfolio para que el orden sea al azar
-    portfolio: data.portfolio.sort(() => Math.random() - 0.5)
-  };
+  const response = await client.fetch(homeDataQuery);
+  console.log("Home data fetched:", response);
+  return await client.fetch(homeDataQuery);
 }

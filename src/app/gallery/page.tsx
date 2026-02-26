@@ -1,13 +1,20 @@
 "use client";
 
 import GalleryCard from "@/components/GalleryCard";
-import { generateGalleryItems } from "@/utils/galleryData";
+import {
+  fetchGalleryPool,
+  pickGalleryItems,
+  GalleryPool,
+} from "@/utils/galleryData";
 import { generateLayout, Position } from "@/utils/layoutGenerator";
 import { GalleryItem } from "@/types/gallery";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+const REFRESH_INTERVAL = 10000;
+
 export default function GalleryPage() {
+  const poolRef = useRef<GalleryPool | null>(null);
   const [positions, setPositions] = useState<(Position | null)[]>([]);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -24,22 +31,40 @@ export default function GalleryPage() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  // Carga inicial — una sola llamada a Sanity
   useEffect(() => {
     const init = async () => {
       try {
-        const items = await generateGalleryItems();
-        console.log("Generated gallery items:", items);
+        const pool = await fetchGalleryPool();
+        console.log("Gallery pool loaded:", pool);
+        poolRef.current = pool;
+        const items = pickGalleryItems(pool);
         const layout = generateLayout(items.length, items);
         setGalleryItems(items);
         setPositions(layout);
       } catch (error) {
-        console.error("Error cargando fotos de Sanity:", error);
+        console.error("Error cargando galería:", error);
       } finally {
         setIsLoading(false);
       }
     };
     init();
   }, []);
+
+  // Refresco cada 10s — solo desktop, solo en memoria
+  useEffect(() => {
+    if (isMobile || isLoading) return;
+
+    const interval = setInterval(() => {
+      if (!poolRef.current) return;
+      const items = pickGalleryItems(poolRef.current);
+      const layout = generateLayout(items.length, items);
+      setGalleryItems(items);
+      setPositions(layout);
+    }, REFRESH_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [isMobile, isLoading]);
 
   const goNext = () => {
     setDirection(1);
@@ -60,9 +85,7 @@ export default function GalleryPage() {
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStart === null) return;
     const delta = touchStart - e.changedTouches[0].clientX;
-    if (Math.abs(delta) > 50) {
-      delta > 0 ? goNext() : goPrev();
-    }
+    if (Math.abs(delta) > 50) delta > 0 ? goNext() : goPrev();
     setTouchStart(null);
   };
 
@@ -87,7 +110,7 @@ export default function GalleryPage() {
     );
   }
 
-  // --- MOBILE: carrusel ---
+  // --- MOBILE ---
   if (isMobile) {
     const variants = {
       enter: (dir: number) => ({ x: dir > 0 ? "100%" : "-100%", opacity: 0 }),
@@ -107,7 +130,6 @@ export default function GalleryPage() {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-
         <div className="absolute inset-0 z-20 flex pointer-events-none">
           <div className="w-1/2 h-full pointer-events-auto" onClick={goPrev} />
           <div className="w-1/2 h-full pointer-events-auto" onClick={goNext} />
@@ -135,14 +157,13 @@ export default function GalleryPage() {
                     ? item.src
                     : `${item.src}?w=800&q=75&auto=format`,
                 }}
-                index={currentIndex} // <-- CORREGIDO: antes decía index
+                index={currentIndex}
                 onTap={() => setOverlayItem(item)}
               />
             </div>
           </motion.div>
         </AnimatePresence>
 
-        {/* OVERLAY MOBILE */}
         <AnimatePresence>
           {overlayItem && (
             <motion.div
@@ -172,14 +193,13 @@ export default function GalleryPage() {
     );
   }
 
-  // --- DESKTOP: scatter layout ---
+  // --- DESKTOP ---
   return (
     <div className="relative h-screen w-screen bg-night overflow-hidden">
       <div className="relative w-full h-full">
         {galleryItems.map((item, index) => {
           const pos = positions[index];
           if (!pos) return null;
-
           return (
             <div
               key={item.id}

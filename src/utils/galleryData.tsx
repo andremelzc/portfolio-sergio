@@ -1,26 +1,28 @@
 import { GalleryItem } from "@/types/gallery";
 import { getHomeData } from "@/sanity/lib/api";
 
-export const generateGalleryItems = async (): Promise<GalleryItem[]> => {
-  const items: GalleryItem[] = [];
-  const totalItems = 50;
+export interface GalleryPool {
+  mandatory: GalleryItem[];
+  optional: GalleryItem[];
+}
 
-  // 1. Obtenemos los datos (Asegúrate que tu query incluya el campo 'metadata')
+const TOTAL_ITEMS = 50;
+
+export const fetchGalleryPool = async (): Promise<GalleryPool> => {
   const data = await getHomeData();
   const settings = data?.settings;
-  const portfolio = data?.portfolio || [];
+  const projects = data?.projects || [];
+  const gallery = data?.gallery || [];
 
-  // --- 2. CARTAS DE SISTEMA (About & Contact) ---
-  // Para estas usamos un tamaño base ya que suelen ser fijas o similares
-  const aboutSrc = settings?.about || "/gallery/about.jpg";
-  const contactSrc = settings?.contact || "/gallery/contact.jpg";
+  const mandatory: GalleryItem[] = [];
+  const optional: GalleryItem[] = [];
 
-  items.push({
+  mandatory.push({
     id: "about-card",
     type: "special",
     specialType: "about",
-    src: aboutSrc,
-    title: "About",
+    src: settings?.about || "/gallery/about.jpg",
+    title: "Sobre mí",
     description: "Who I am",
     slug: "about",
     isFallback: !settings?.about,
@@ -28,12 +30,12 @@ export const generateGalleryItems = async (): Promise<GalleryItem[]> => {
     naturalHeight: 1000,
   });
 
-  items.push({
+  mandatory.push({
     id: "contact-card",
     type: "special",
     specialType: "contact",
-    src: contactSrc,
-    title: "Contact",
+    src: settings?.contact || "/gallery/contact.jpg",
+    title: "Contacto",
     description: "Get in touch",
     slug: "contact",
     isFallback: !settings?.contact,
@@ -41,53 +43,50 @@ export const generateGalleryItems = async (): Promise<GalleryItem[]> => {
     naturalHeight: 1000,
   });
 
-  // --- 3. CONTENIDO DE PORTFOLIO (Proyectos y Galería suelta) ---
-  portfolio.forEach((item: any) => {
-    // Usamos las dimensiones que vienen de Sanity metadata
-    const width = item.metadata?.dimensions?.width || 800;
-    const height = item.metadata?.dimensions?.height || 1000;
-
-    if (item.type === "project") {
-      items.push({
-        id: item.id,
-        type: "special",
-        specialType: "project",
-        src: item.url,
-        title: item.title || "Untitled Project",
-        description: "View Project",
-        slug: item.slug,
-        isFallback: false,
-        naturalWidth: width,
-        naturalHeight: height,
-      });
-    } else {
-      items.push({
-        id: item.id,
-        type: "image",
-        src: item.url,
-        isFallback: false,
-        naturalWidth: width,
-        naturalHeight: height,
-      });
-    }
+  projects.forEach((item: any) => {
+    mandatory.push({
+      id: item.id,
+      type: "special",
+      specialType: "project",
+      src: item.url,
+      title: item.title || "Untitled Project",
+      description: "View Project",
+      slug: item.slug,
+      isFallback: false,
+      naturalWidth: item.metadata?.dimensions?.width || 800,
+      naturalHeight: item.metadata?.dimensions?.height || 1000,
+    });
   });
 
-  // --- 4. RELLENO (Fallbacks locales) ---
-  const currentCount = items.length;
-  if (currentCount < totalItems) {
-    for (let i = 1; i <= totalItems - currentCount; i++) {
-      items.push({
-        id: `fallback-filler-${i}`,
-        type: "image",
-        src: `/gallery/${(i % 5) + 1}.jpg`,
-        isFallback: true,
-        naturalWidth: 600, // Tamaño estimado para relleno local
-        naturalHeight: 800,
-      });
-    }
+  gallery.forEach((item: any) => {
+    optional.push({
+      id: item.id,
+      type: "image",
+      src: item.url,
+      isFallback: false,
+      naturalWidth: item.metadata?.dimensions?.width || 800,
+      naturalHeight: item.metadata?.dimensions?.height || 1000,
+    });
+  });
+
+  return { mandatory, optional };
+};
+
+export const pickGalleryItems = (pool: GalleryPool): GalleryItem[] => {
+  const { mandatory, optional } = pool;
+  const spotsLeft = Math.max(0, TOTAL_ITEMS - mandatory.length);
+
+  const shuffled = [...optional];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
 
-  // --- 5. MEZCLA FINAL ---
-  // Ya no hay "await Promise.all", el retorno es inmediato tras la query
-  return items.sort(() => Math.random() - 0.5);
+  const combined = [...mandatory, ...shuffled.slice(0, spotsLeft)];
+  for (let i = combined.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [combined[i], combined[j]] = [combined[j], combined[i]];
+  }
+
+  return combined;
 };
