@@ -37,7 +37,6 @@ export default function GalleryPage() {
     const init = async () => {
       try {
         const pool = await fetchGalleryPool();
-        console.log("Gallery pool loaded:", pool);
         poolRef.current = pool;
         const items = pickGalleryItems(pool);
         const layout = generateLayout(items.length, items);

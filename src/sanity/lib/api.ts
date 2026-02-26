@@ -51,6 +51,5 @@ export async function getAllProjectSlugs() {
 // Obtener las imágenes de la galería
 export async function getHomeData() {
   const response = await client.fetch(homeDataQuery);
-  console.log("Home data fetched:", response);
   return await client.fetch(homeDataQuery);
 }
