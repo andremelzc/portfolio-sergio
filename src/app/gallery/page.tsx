@@ -25,6 +25,7 @@ export default function GalleryPage() {
   const [direction, setDirection] = useState(1);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [overlayItem, setOverlayItem] = useState<GalleryItem | null>(null);
+  const [isShuffling, setIsShuffling] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -62,8 +63,12 @@ export default function GalleryPage() {
       if (!poolRef.current) return;
       const items = pickGalleryItems(poolRef.current);
       const layout = generateLayout(items.length, items, dpr);
+      // Flag that a reshuffle is happening so cards can pause animations
+      setIsShuffling(true);
       setGalleryItems(items);
       setPositions(layout);
+      // Allow CSS transitions to complete, then clear shuffling flag
+      setTimeout(() => setIsShuffling(false), 600);
     }, REFRESH_INTERVAL);
 
     return () => clearInterval(interval);
@@ -77,7 +82,9 @@ export default function GalleryPage() {
       setDpr(devicePR);
       if (!galleryItems || galleryItems.length === 0) return;
       const layout = generateLayout(galleryItems.length, galleryItems, devicePR);
+      setIsShuffling(true);
       setPositions(layout);
+      setTimeout(() => setIsShuffling(false), 600);
     };
 
     window.addEventListener("resize", handleResize);
@@ -222,7 +229,7 @@ export default function GalleryPage() {
           const reqWidth = Math.max(200, Math.round(pos.width * dpr));
           return (
             <div
-              key={item.id}
+              key={`${item.id}-${index}`}
               className="absolute"
               style={{
                 left: `${pos.x}px`,
@@ -241,6 +248,7 @@ export default function GalleryPage() {
                     : `${item.src}?w=${reqWidth}&q=75&auto=format`,
                 }}
                 index={index}
+                repositioning={isShuffling}
               />
             </div>
           );

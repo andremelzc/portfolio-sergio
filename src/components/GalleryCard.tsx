@@ -11,11 +11,13 @@ function SystemCard({
   index,
   onTap,
   masonry = false,
+  repositioning = false,
 }: {
   item: GalleryItem;
   index: number;
   onTap?: () => void;
   masonry?: boolean;
+  repositioning?: boolean;
 }) {
   const controls = useAnimation();
   const router = useRouter();
@@ -26,6 +28,12 @@ function SystemCard({
     const loop = async () => {
       await new Promise((r) => setTimeout(r, delay * 1000));
       while (mounted) {
+        // if a repositioning is in progress, wait and keep the front visible
+        if (repositioning) {
+          await controls.start({ rotateY: 0, transition: { duration: 0 } });
+          await new Promise((r) => setTimeout(r, 500));
+          continue;
+        }
         await new Promise((r) => setTimeout(r, 5000));
         if (!mounted) break;
         await controls.start({
@@ -39,14 +47,16 @@ function SystemCard({
           transition: { duration: 0.8, ease: "easeInOut" },
         });
         if (!mounted) break;
-        controls.set({ rotateY: 0 });
+        // Reset via an explicit animation so the transform state is consistent
+        await controls.start({ rotateY: 0, transition: { duration: 0 } });
       }
     };
     loop();
     return () => {
       mounted = false;
+      controls.stop();
     };
-  }, [controls, index]);
+  }, [controls, index, repositioning]);
 
   const containerClass = `relative w-full ${masonry ? "h-auto" : "h-full"} z-50 cursor-pointer group`;
   const faceClass = masonry ? "w-full" : "absolute inset-0 w-full h-full";
@@ -68,8 +78,9 @@ function SystemCard({
     >
       <motion.div
         animate={controls}
+        initial={{ rotateY: 0 }}
         className={`${masonry ? "w-full" : "w-full h-full relative"}`}
-        style={{ transformStyle: "preserve-3d" }}
+        style={{ transformStyle: "preserve-3d", WebkitTransformStyle: "preserve-3d", willChange: "transform", transform: "translateZ(0)" }}
       >
         {/* FRENTE */}
         <div
@@ -77,12 +88,14 @@ function SystemCard({
           style={{
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
+            WebkitTransformStyle: "preserve-3d",
           }}
         >
           <img
             src={item.src}
             alt={item.title}
-            className={`w-full ${masonry ? "h-auto" : "h-full"} object-cover`}
+            className={`block w-full ${masonry ? "h-auto" : "h-full"} object-cover`}
+            style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", transform: "translateZ(0)" }}
           />
           {/* Título en hover — SystemCard */}
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
@@ -132,16 +145,26 @@ export default function GalleryCard({
   index,
   onTap,
   masonry = false,
+  repositioning = false,
 }: {
   item: GalleryItem;
   index: number;
   onTap?: () => void;
   masonry?: boolean;
+  repositioning?: boolean;
 }) {
   const router = useRouter();
 
   if (item.specialType === "about" || item.specialType === "contact") {
-    return <SystemCard item={item} index={index} onTap={onTap} masonry={masonry} />;
+    return (
+      <SystemCard
+        item={item}
+        index={index}
+        onTap={onTap}
+        masonry={masonry}
+        repositioning={repositioning}
+      />
+    );
   }
 
   if (item.specialType === "project") {

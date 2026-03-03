@@ -16,8 +16,13 @@ export default function Sidebar() {
 
   useEffect(() => {
     const fetchProjects = async () => {
-      const data = await getAllProjectSlugs();
-      setProjects(data);
+      try {
+        const data = await getAllProjectSlugs();
+        setProjects(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Error loading project slugs:", error);
+        setProjects([]);
+      }
     };
     fetchProjects();
   }, []);

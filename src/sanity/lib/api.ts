@@ -44,12 +44,18 @@ export async function getAllProjectSlugs() {
     return await client.fetch(allProjectSlugsQuery);
   } catch (error) {
     console.error("Error fetching project slugs:", error);
-    return null;
+    // Return an empty array to avoid runtime errors when callers map over results
+    return [];
   }
 }
 
 // Obtener las imágenes de la galería
 export async function getHomeData() {
-  const response = await client.fetch(homeDataQuery);
-  return await client.fetch(homeDataQuery);
+  try {
+    const response = await client.fetch(homeDataQuery);
+    return response;
+  } catch (error) {
+    console.error("Error fetching home data:", error);
+    return null;
+  }
 }
