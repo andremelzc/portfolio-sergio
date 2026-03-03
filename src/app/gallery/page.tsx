@@ -194,31 +194,38 @@ export default function GalleryPage() {
     );
   }
 
-  // --- DESKTOP: simple CSS-columns masonry ---
+  // --- DESKTOP ---
   return (
-    <div className="relative min-h-screen w-screen bg-night overflow-auto p-6">
-      <div className="mx-auto max-w-[1400px]">
-        <div className="columns-2 md:columns-3 lg:columns-4 gap-4">
-          {galleryItems.map((item, index) => {
-            return (
-              <div
-                key={item.id}
-                className="break-inside-avoid mb-4"
-                onClick={() => {}}
-              >
-                <GalleryCard
-                  item={{
-                    ...item,
-                    src: item.isFallback
-                      ? item.src
-                      : `${item.src}?w=800&q=75&auto=format`,
-                  }}
-                  index={index}
-                />
-              </div>
-            );
-          })}
-        </div>
+    <div className="relative h-screen w-screen bg-night overflow-hidden">
+      <div className="relative w-full h-full">
+        {galleryItems.map((item, index) => {
+          const pos = positions[index];
+          if (!pos) return null;
+          return (
+            <div
+              key={item.id}
+              className="absolute"
+              style={{
+                left: `${pos.x}px`,
+                top: `${pos.y}px`,
+                width: `${pos.width}px`,
+                height: `${pos.height}px`,
+                perspective: "1000px",
+                transition: "top 0.5s ease, left 0.5s ease",
+              }}
+            >
+              <GalleryCard
+                item={{
+                  ...item,
+                  src: item.isFallback
+                    ? item.src
+                    : `${item.src}?w=800&q=75&auto=format`,
+                }}
+                index={index}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );
