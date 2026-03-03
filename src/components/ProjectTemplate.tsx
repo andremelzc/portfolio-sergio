@@ -10,6 +10,7 @@ export default function ProjectTemplate({ project }: { project: Project }) {
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState(1);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [showGrid, setShowGrid] = useState(false);
   const images = (project.galleryUrls || []).map(
     (url: string) => `${url}?w=1200&q=80&auto=format&fit=max`,
   );
@@ -55,6 +56,13 @@ export default function ProjectTemplate({ project }: { project: Project }) {
                 setTouchStart(null);
               }}
             >
+              {/* Top click zone: click to open grid-of-all-images */}
+              <div
+                className="absolute left-0 right-0 top-0 h-16 md:h-24 z-40 cursor-pointer"
+                onClick={() => setShowGrid(true)}
+                aria-hidden={false}
+                title="Show all images"
+              />
               {/* Zonas de click */}
               <div className="absolute inset-0 z-20 flex">
                 <div
@@ -87,7 +95,7 @@ export default function ProjectTemplate({ project }: { project: Project }) {
                   animate="center"
                   exit="exit"
                   transition={{ duration: 0.35, ease: "easeInOut" }}
-                  className="absolute inset-0 w-full h-full object-contain grayscale"
+                  className="absolute inset-0 w-full h-full object-contain"
                 />
               </AnimatePresence>
             </div>
@@ -101,20 +109,51 @@ export default function ProjectTemplate({ project }: { project: Project }) {
         </div>
 
         {/* ── Texto: fuera del viewport, scrolleable ── */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          className="px-4 md:px-12 py-8 md:py-12 max-w-7xl self-center w-full"
-        >
-          <div className="text-sm md:text-xl font-extralight text-white italic leading-relaxed mx-auto">
-            {typeof project.description === "string" ? (
-              <p>{project.description}</p>
-            ) : (
-              <PortableText value={project.description as any} />
-            )}
-          </div>
-        </motion.div>
+        {project.description && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            className="px-4 md:px-12 py-8 md:py-12 max-w-7xl self-center w-full"
+          >
+            <div className="text-sm md:text-xl font-extralight text-white italic leading-relaxed mx-auto">
+              {typeof project.description === "string" ? (
+                <p>{project.description}</p>
+              ) : (
+                <PortableText value={project.description as any} />
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Grid overlay: shows all images; click thumbnail to select and close */}
+        <AnimatePresence>
+          {showGrid && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/95 flex items-start justify-center p-6 overflow-auto"
+              onClick={() => setShowGrid(false)}
+            >
+              <div className="w-full max-w-6xl grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {images.map((src, i) => (
+                  <div
+                    key={src + i}
+                    className="cursor-pointer overflow-hidden rounded-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIndex(i);
+                      setShowGrid(false);
+                    }}
+                  >
+                    <img src={src} alt={`thumb-${i}`} className="w-full h-40 object-cover" />
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </main>
   );

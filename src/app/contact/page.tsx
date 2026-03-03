@@ -28,18 +28,18 @@ export default function ContactPage() {
               href="https://instagram.com/sergiomelendezc"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:opacity-60 transition-opacity"
+              className="hover:text-white/60 transition-colors"
             >
-              <Instagram size={24} strokeWidth={1} />
+              @sergiomelendezc
             </a>
-
+            
             <a
               href="https://instagram.com/sergiomelendezc"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-white/60 transition-colors"
+              className="hover:opacity-60 transition-opacity"
             >
-              @sergiomelendezc
+              <Instagram size={24} strokeWidth={1} />
             </a>
 
             <span className="text-white/50">Lima, Peru</span>

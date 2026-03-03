@@ -58,11 +58,11 @@ export const generateLayout = (
 
   // --- ESCALA JERÁRQUICA ---
   // El maxSize define el lado más largo; el otro se calcula del aspect ratio
-  const systemMaxSize = 260; // About / Contact — presencia clara
+  const systemMaxSize = 230; // About / Contact — presencia clara
   const systemMinSize = 160;
 
-  const projectMaxSize = 220; // Proyectos — un escalón abajo
-  const projectMinSize = 140;
+  const projectMaxSize = 210; // Proyectos — un escalón abajo
+  const projectMinSize = 135;
 
   const fillerMaxSize = 180; // Relleno — pequeño, atmosférico
   const fillerMinSize = 110;
@@ -73,8 +73,8 @@ export const generateLayout = (
   const fillerFallbackMin = 110;
   const fillerFallbackMax = 180;
 
-  const padding = 16;
-  const edgeMargin = 20;
+  const padding = 12;
+  const edgeMargin = 16;
 
   const viewportWidth =
     typeof window !== "undefined" ? window.innerWidth : 1400;
