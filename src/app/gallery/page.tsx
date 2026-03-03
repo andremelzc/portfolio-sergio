@@ -196,7 +196,7 @@ export default function GalleryPage() {
 
   // --- DESKTOP ---
   return (
-    <div className="relative h-screen w-screen bg-night overflow-hidden">
+    <div className="relative h-svh w-screen bg-night overflow-hidden">
       <div className="relative w-full h-full">
         {galleryItems.map((item, index) => {
           const pos = positions[index];

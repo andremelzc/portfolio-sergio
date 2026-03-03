@@ -10,10 +10,12 @@ function SystemCard({
   item,
   index,
   onTap,
+  masonry = false,
 }: {
   item: GalleryItem;
   index: number;
   onTap?: () => void;
+  masonry?: boolean;
 }) {
   const controls = useAnimation();
   const router = useRouter();
@@ -46,9 +48,13 @@ function SystemCard({
     };
   }, [controls, index]);
 
+  const containerClass = `relative w-full ${masonry ? "h-auto" : "h-full"} z-50 cursor-pointer group`;
+  const faceClass = masonry ? "w-full" : "absolute inset-0 w-full h-full";
+  const backFaceClass = masonry ? "w-full bg-black p-4" : "absolute inset-0 w-full h-full bg-black p-4";
+
   return (
     <motion.div
-      className="relative w-full h-full z-50 cursor-pointer group"
+      className={containerClass}
       initial={{ scale: 0 }}
       animate={{ scale: 1 }}
       transition={{ delay: 0.1 }}
@@ -62,12 +68,12 @@ function SystemCard({
     >
       <motion.div
         animate={controls}
-        className="w-full h-full relative"
+        className={`${masonry ? "w-full" : "w-full h-full relative"}`}
         style={{ transformStyle: "preserve-3d" }}
       >
         {/* FRENTE */}
         <div
-          className="absolute inset-0 w-full h-full"
+          className={faceClass}
           style={{
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
@@ -76,7 +82,7 @@ function SystemCard({
           <img
             src={item.src}
             alt={item.title}
-            className="w-full h-full object-cover"
+            className={`w-full ${masonry ? "h-auto" : "h-full"} object-cover`}
           />
           {/* Título en hover — SystemCard */}
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
@@ -96,7 +102,7 @@ function SystemCard({
 
         {/* REVERSO */}
         <div
-          className="absolute inset-0 w-full h-full bg-black flex items-center justify-center p-4"
+          className={backFaceClass}
           style={{
             transform: "rotateY(180deg)",
             backfaceVisibility: "hidden",
@@ -125,21 +131,23 @@ export default function GalleryCard({
   item,
   index,
   onTap,
+  masonry = false,
 }: {
   item: GalleryItem;
   index: number;
   onTap?: () => void;
+  masonry?: boolean;
 }) {
   const router = useRouter();
 
   if (item.specialType === "about" || item.specialType === "contact") {
-    return <SystemCard item={item} index={index} onTap={onTap} />;
+    return <SystemCard item={item} index={index} onTap={onTap} masonry={masonry} />;
   }
 
   if (item.specialType === "project") {
     return (
       <motion.div
-        className="relative w-full h-full z-50 cursor-pointer overflow-hidden group bg-black"
+        className={`relative w-full ${masonry ? "h-auto" : "h-full"} z-50 cursor-pointer overflow-hidden group bg-black`}
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         onClick={() =>
@@ -155,7 +163,7 @@ export default function GalleryCard({
         <img
           src={item.src}
           alt={item.title}
-          className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500"
+          className={`w-full ${masonry ? "h-auto" : "h-full"} object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500`}
         />
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none">
           <div className="absolute inset-0 bg-black/40" />
@@ -175,7 +183,7 @@ export default function GalleryCard({
   }
   return (
     <motion.div
-      className="relative w-full h-full overflow-hidden bg-black"
+      className={`relative w-full ${masonry ? "h-auto" : "h-full"} overflow-hidden bg-black`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1, delay: Math.random() * 0.5 }}
@@ -189,7 +197,7 @@ export default function GalleryCard({
       <img
         src={item.src}
         alt="Atmosphere"
-        className="w-full h-full object-cover transition-all duration-500 grayscale"
+        className={`w-full ${masonry ? "h-auto" : "h-full"} object-cover transition-all duration-500 grayscale`}
       />
     </motion.div>
   );
