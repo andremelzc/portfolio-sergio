@@ -19,6 +19,7 @@ export default function AboutPage() {
           <div className="space-y-10 text-base md:text-xl leading-[1.9] font-extralight text-white/90">
             <p className="italic">{data.description}</p>
             <p className="text-white">{data.description2}</p>
+            <p className="text-white">{data.description3}</p>
           </div>
         </motion.div>
       </div>
