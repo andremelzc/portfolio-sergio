@@ -16,6 +16,7 @@ const REFRESH_INTERVAL = 10000;
 
 export default function GalleryPage() {
   const poolRef = useRef<GalleryPool | null>(null);
+  const [dpr, setDpr] = useState(1);
   const [positions, setPositions] = useState<(Position | null)[]>([]);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,7 +40,9 @@ export default function GalleryPage() {
         const pool = await fetchGalleryPool();
         poolRef.current = pool;
         const items = pickGalleryItems(pool);
-        const layout = generateLayout(items.length, items);
+        const devicePR = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+        setDpr(devicePR);
+        const layout = generateLayout(items.length, items, devicePR);
         setGalleryItems(items);
         setPositions(layout);
       } catch (error) {
@@ -58,13 +61,28 @@ export default function GalleryPage() {
     const interval = setInterval(() => {
       if (!poolRef.current) return;
       const items = pickGalleryItems(poolRef.current);
-      const layout = generateLayout(items.length, items);
+      const layout = generateLayout(items.length, items, dpr);
       setGalleryItems(items);
       setPositions(layout);
     }, REFRESH_INTERVAL);
 
     return () => clearInterval(interval);
   }, [isMobile, isLoading]);
+
+  // Recompute layout on resize / DPR changes so higher scaling fits more items
+  useEffect(() => {
+    if (isMobile) return;
+    const handleResize = () => {
+      const devicePR = window.devicePixelRatio || 1;
+      setDpr(devicePR);
+      if (!galleryItems || galleryItems.length === 0) return;
+      const layout = generateLayout(galleryItems.length, galleryItems, devicePR);
+      setPositions(layout);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [isMobile, galleryItems]);
 
   const goNext = () => {
     setDirection(1);
@@ -197,10 +215,11 @@ export default function GalleryPage() {
   // --- DESKTOP ---
   return (
     <div className="relative h-svh w-screen bg-night overflow-hidden">
-      <div className="relative w-full h-full">
+      <div className="relative w-full h-full overflow-hidden">
         {galleryItems.map((item, index) => {
           const pos = positions[index];
           if (!pos) return null;
+          const reqWidth = Math.max(200, Math.round(pos.width * dpr));
           return (
             <div
               key={item.id}
@@ -219,7 +238,7 @@ export default function GalleryPage() {
                   ...item,
                   src: item.isFallback
                     ? item.src
-                    : `${item.src}?w=800&q=75&auto=format`,
+                    : `${item.src}?w=${reqWidth}&q=75&auto=format`,
                 }}
                 index={index}
               />

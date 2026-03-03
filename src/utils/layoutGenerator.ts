@@ -53,23 +53,25 @@ const scaleToFit = (
 export const generateLayout = (
   itemCount: number,
   items: any[],
+  dpr = 1,
 ): (Position | null)[] => {
   const positions: Position[] = [];
 
   // --- ESCALA JERÁRQUICA ---
   // El maxSize define el lado más largo; el otro se calcula del aspect ratio
-  const systemMaxSize = 230; // About / Contact — presencia clara
-  const systemMinSize = 160;
+  // Adjust sizes inversely to devicePixelRatio so higher DPR shows more items
+  const systemMaxSize = 230 / dpr; // About / Contact — presencia clara
+  const systemMinSize = 160 / dpr;
 
-  const projectMaxSize = 210; // Proyectos — un escalón abajo
-  const projectMinSize = 135;
+  const projectMaxSize = 210 / dpr; // Proyectos — un escalón abajo
+  const projectMinSize = 135 / dpr;
 
-  const fillerMaxSize = 180; // Relleno — pequeño, atmosférico
-  const fillerMinSize = 110;
+  const fillerMaxSize = 180 / dpr; // Relleno — pequeño, atmosférico
+  const fillerMinSize = 110 / dpr;
 
   // Tamaños fijos para fallbacks (sin dimensiones naturales)
-  const systemFallbackSize = 280;
-  const projectFallbackSize = 220;
+  const systemFallbackSize = 280 / dpr;
+  const projectFallbackSize = 220 / dpr;
   const fillerFallbackMin = 110;
   const fillerFallbackMax = 180;
 
