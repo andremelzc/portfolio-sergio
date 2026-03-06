@@ -24,27 +24,32 @@ function SystemCard({
 
   useEffect(() => {
     let mounted = true;
-    const delay = index * 2;
+    // Reduce initial stagger so flips happen sooner, and cap maximum delay
+    const delay = Math.min(index * 0.3, 2);
     const loop = async () => {
       await new Promise((r) => setTimeout(r, delay * 1000));
       while (mounted) {
         // if a repositioning is in progress, wait and keep the front visible
         if (repositioning) {
+          if (!mounted) break;
           await controls.start({ rotateY: 0, transition: { duration: 0 } });
+          if (!mounted) break;
           await new Promise((r) => setTimeout(r, 500));
           continue;
         }
-        await new Promise((r) => setTimeout(r, 5000));
+        // Wait a shorter time before starting the flip so it finishes before reshuffle
+        await new Promise((r) => setTimeout(r, 2000));
         if (!mounted) break;
         await controls.start({
           rotateY: 180,
-          transition: { duration: 0.8, ease: "easeInOut" },
+          transition: { duration: 0.5, ease: "easeInOut" },
         });
-        await new Promise((r) => setTimeout(r, 3000));
+        // Short pause between front and back so the effect is noticeable but fast
+        await new Promise((r) => setTimeout(r, 1000));
         if (!mounted) break;
         await controls.start({
           rotateY: 360,
-          transition: { duration: 0.8, ease: "easeInOut" },
+          transition: { duration: 0.5, ease: "easeInOut" },
         });
         if (!mounted) break;
         // Reset via an explicit animation so the transform state is consistent
@@ -60,7 +65,9 @@ function SystemCard({
 
   const containerClass = `relative w-full ${masonry ? "h-auto" : "h-full"} z-50 cursor-pointer group`;
   const faceClass = masonry ? "w-full" : "absolute inset-0 w-full h-full";
-  const backFaceClass = masonry ? "w-full bg-black p-4" : "absolute inset-0 w-full h-full bg-black p-4";
+  const backFaceClass = masonry
+    ? "w-full bg-black p-4 flex items-center justify-center"
+    : "absolute inset-0 w-full h-full bg-black p-4 flex items-center justify-center";
 
   return (
     <motion.div
@@ -74,7 +81,7 @@ function SystemCard({
         filter: "invert(1) hue-rotate(180deg)",
         transition: { duration: 0.4 },
       }}
-      style={{ transformStyle: "preserve-3d" }}
+      style={{ transformStyle: "preserve-3d", perspective: "1000px" }}
     >
       <motion.div
         animate={controls}
