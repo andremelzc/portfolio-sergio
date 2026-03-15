@@ -9,7 +9,7 @@ export default function ContactPage() {
     <main className="min-h-svh bg-night text-white flex">
       <Sidebar />
 
-      <div className="flex-1 flex items-center justify-center p-8 md:ml-48">
+      <div className="flex-1 flex items-center justify-center p-12 md:ml-48">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

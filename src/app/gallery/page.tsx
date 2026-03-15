@@ -41,11 +41,12 @@ export default function GalleryPage() {
         const pool = await fetchGalleryPool();
         poolRef.current = pool;
         const items = pickGalleryItems(pool);
-        const devicePR = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+        const devicePR =
+          typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
         setDpr(devicePR);
-        const layout = generateLayout(items.length, items, devicePR);
         setGalleryItems(items);
-        setPositions(layout);
+        // Do not call generateLayout here — positions are computed
+        // in the sync effect below which respects `isMobile`.
       } catch (error) {
         console.error("Error cargando galería:", error);
       } finally {
@@ -81,7 +82,11 @@ export default function GalleryPage() {
       const devicePR = window.devicePixelRatio || 1;
       setDpr(devicePR);
       if (!galleryItems || galleryItems.length === 0) return;
-      const layout = generateLayout(galleryItems.length, galleryItems, devicePR);
+      const layout = generateLayout(
+        galleryItems.length,
+        galleryItems,
+        devicePR,
+      );
       setIsShuffling(true);
       setPositions(layout);
       setTimeout(() => setIsShuffling(false), 600);
@@ -116,9 +121,42 @@ export default function GalleryPage() {
 
   useEffect(() => {
     if (!isMobile || overlayItem) return;
-    const timer = setInterval(goNext, 4000);
+    if (galleryItems.length <= 1) return; // guard adicional
+
+    const timer = setInterval(() => {
+      setDirection(1);
+      setCurrentIndex((prev) => (prev + 1) % galleryItems.length);
+    }, 4000);
+
     return () => clearInterval(timer);
-  }, [isMobile, currentIndex, overlayItem]);
+  }, [isMobile, currentIndex, overlayItem, galleryItems.length]);
+
+  // Keep `currentIndex` clamped to available items to avoid out-of-range
+  useEffect(() => {
+    setCurrentIndex((prev) => {
+      if (galleryItems.length === 0) return 0;
+      return Math.min(prev, galleryItems.length - 1);
+    });
+  }, [galleryItems.length]);
+
+  // Sync positions with galleryItems and skip complex layout on mobile.
+  useEffect(() => {
+    if (isMobile) {
+      // On mobile we don't need spatial positions — keep placeholder array in sync
+      setPositions(galleryItems.map(() => null));
+      return;
+    }
+
+    if (!galleryItems || galleryItems.length === 0) {
+      setPositions([]);
+      return;
+    }
+
+    const layout = generateLayout(galleryItems.length, galleryItems, dpr);
+    setIsShuffling(true);
+    setPositions(layout);
+    setTimeout(() => setIsShuffling(false), 600);
+  }, [isMobile, galleryItems, dpr]);
 
   if (isLoading) {
     return (
@@ -143,8 +181,18 @@ export default function GalleryPage() {
       exit: (dir: number) => ({ x: dir > 0 ? "-100%" : "100%", opacity: 0 }),
     };
 
-    const item = galleryItems[currentIndex];
-    const hasNaturalDims = item?.naturalWidth && item?.naturalHeight;
+    if (galleryItems.length === 0) {
+      return (
+        <div className="h-svh w-screen bg-night flex items-center justify-center">
+          <div className="text-lg font-extralight text-white/20 italic">
+            No images
+          </div>
+        </div>
+      );
+    }
+
+    const item = galleryItems[currentIndex] ?? galleryItems[0];
+    const hasNaturalDims = !!(item.naturalWidth && item.naturalHeight);
     const aspectRatio = hasNaturalDims
       ? item.naturalWidth! / item.naturalHeight!
       : 3 / 4;

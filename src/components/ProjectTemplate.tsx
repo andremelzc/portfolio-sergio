@@ -38,7 +38,7 @@ export default function ProjectTemplate({ project }: { project: Project }) {
 
       <div className="flex-1 flex flex-col md:ml-48">
         {/* ── Bloque viewport: título + carrusel siempre en 100svh ── */}
-        <div className="h-svh flex flex-col px-4 md:px-12 py-8 md:py-12 gap-4 md:gap-6">
+        <div className="h-svh flex flex-col px-8 py-8 md:py-12 gap-4 md:gap-6">
           {/* Título */}
           <h1 className="shrink-0 text-[10px] md:text-[11px] uppercase tracking-[0.5em] text-white/30 italic text-center mt-10 md:mt-0">
             {project.title}
